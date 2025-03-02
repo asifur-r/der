@@ -1,0 +1,16 @@
+ToDo:
+
+Add time series: rect, linear, triangular
+Make code dynamic
+Add beta newmark may be?
+Add sparse matrix implementation
+Make code object oriented
+
+
+Note:
+
+-- 
+getRefTwist and computeTimeParallel uses tangents, a1 and refTwist from t=0 to get the new quantities
+however, in the book these are defined based on previous time step
+this is probaly okay as long as everything that refers to (t-1) step is taken from t=0
+
