@@ -15,15 +15,3 @@ classdef Section
         end
     end
 end
-
-% function str = Section(w, h)
-%     % Returns a struct of section
-
-%     % Rectangular section for now
-
-%     % w = width
-%     % h = height
-
-%     str = struct('w', w, 'h', h);
-    
-% end

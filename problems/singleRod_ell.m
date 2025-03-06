@@ -47,7 +47,7 @@ nu = 0.38;
 rho = 1.2e-6; % kg/mm3
 
 % PETG material
-mat = MaterialE, nu, rho);
+mat = Material(E, nu, rho);
 
 % --------------------------------------------------
 % RODS GENERATION

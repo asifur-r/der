@@ -16,6 +16,8 @@ classdef systemProperties
 
         frdof       % Free system dof tags
         nfrdof      % Number of free system dof
+
+        timeSeries  % Array storing TimeSeries object
     end
 
     methods
@@ -31,34 +33,10 @@ classdef systemProperties
             [obj.prddof, obj.nprddof] = presDispDofs(Rods);
 
             [obj.frdof, obj.nfrdof] = freeSysDofs(Rods, ana);
-            
+
+            % Add a default constant time series of zero value beforehand
+            obj.timeSeries = [Series('constant', 0), ana.timeSeries];
+
         end
     end
 end
-
-% function sys = systemProperties(Rods, ana)
-%     % Defines system level variables in a struct
-    
-%     % Rods = struct containting main rods and linkers
-%     % ana = analysis struct
-    
-%     % Number of rods
-%     sys.nRods = length(Rods);
-
-%     % Number of system dof and their tags
-%     [sys.dof, sys.ndof] = sysDofs(Rods);
-
-%     % Number of prescribed system dof
-%     [sys.prddof, sys.nprddof] = presDispDofs(Rods);
-
-%     % Number of restrained system dof
-%     [sys.resdof, sys.nresdof] = resDofs(Rods);
-
-%     % Vector containing number of dofs per rod
-%     sys.ndofpr = ndofsPerRod(Rods);
-
-%     % Number of free system dof
-%     [sys.frdof, sys.nfrdof] = freeSysDofs(Rods, ana);
-
-% end
-

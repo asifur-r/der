@@ -15,7 +15,7 @@ derPath = '../'; addpath(genpath(derPath))
 %sec = Section(width, height);
 sec = Section(5, 5);
 
-%mat = MaterialE, nu, rho);
+%mat = Material(E, nu, rho);
 mat = Material(2.2e3, 0.38, 1.2e-6);
 
 % Rod length
@@ -36,20 +36,20 @@ rods(1) = InitializeRod(points, sec, mat);
 % --------------------------------------------------
 
 % Load (N or Nmm)
-P = 150;
+P = 50;
 
 % Displacement (mm)
 D = 50;
 
 % Assign restraints
-% rods(id) = Restraint(rods(id), node, dof, val);
-rods(1) = Restraint(rods(1), 1:2, 1:3, 1); 
-rods(1) = Restraint(rods(1), 1, 4, 1);
+% rods(id) = Restraint(rods(id), node, dof, val, tstag);
+rods(1) = Restraint(rods(1), 1:2, 1:3, 1, 1);
+rods(1) = Restraint(rods(1), 1, 4, 1, 1);
 
 % Assign loads
-% rods(id) = PointLoad(rods(id), node, dof, val);
-rods(1) = PointLoad(rods(1), N, 3, P);
-% rods(1) = Displacement(rods(1), N, 3, D);
+% rods(id) = PointLoad(rods(id), node, dof, val, tstag);
+rods(1) = PointLoad(rods(1), N, 3, P, 2);
+% rods(1) = Displacement(rods(1), N, 3, D, 3);
 % rods(1) = Displacement(rods(1), N,   2, D/2);
 % rods(1) = Displacement(rods(1), N,   3, D  );
 % rods(1) = Displacement(rods(1), N-1, 4, D/30);
@@ -62,31 +62,29 @@ linkspec = [];
 % --------------------------------------------------
 
 % Inspection variables(rod, node, dof)
-liveDisp = []; liveForce = [1 N 3; 1 3 3];
+liveDofs = [1 N 3];
 
 % Visual
-vis = Visual('disp', liveDisp, 'deformed', false);
+vis = Visual('dofs', liveDofs, 'deformed', true);
 
 % Monitor
 mon = [];%Monitor('iter', 'sol.t', 'step', 'sol.lam');
 
 % Recorder
 rec = [];%Record('dispfile', 'disp.txt', 'dispdofs', [1 N 3]);
+% rec = Record('forcefile', 'force.txt', 'forcedofs', [1 N 3]);
 
 % --------------------------------------------------
 % ANALYSIS
 % --------------------------------------------------
 
-% TimeSeries(1, 'linear', dt, tf, []);
-%time = TimeSeries(1, 'linear', 10, 0.1, struct('ta', 0, 'tb', 5));
-
 % Analysis object
-% ana = Analysis('static', 0.1);
+% ana = Analysis('static', 10, 0.1);
 ana = Analysis('dynamic', 10, 1);
 
 % Integration
 ana = ana.Integration('euler');
-% ana = ana.Integration('newmark', 0.5);
+% ana = ana.Integration('newmark', 0.75);
 
 % Solver
 ana = ana.Solver('nr');
@@ -101,8 +99,11 @@ ana = ana.Constraint('elimination');
 
 % Damping
 ana = ana.Damping('rayleigh', 0.01, 0.001);
-% ana = ana.Damping('vertices', 0.01);
-return
+
+% Time series
+ana = ana.TimeSeries([Series('constant', 1), Series('linear', 1, 0, 4), Series('linear', 1, 5, 10)]);
+% ana = ana.TimeSeries([Series('constant', 1), Series('triangular', 1, 1, 4, 8)]);
+
 % --------------------------------------------------
 
 % Call DER

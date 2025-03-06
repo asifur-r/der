@@ -1,9 +1,9 @@
-function rod = Restraint(rod, nodesList, dofsList, valsList)
+function rod = Restraint(rod, nodesList, dofsList, valsList, tagsList)
 
     % Allow only 1 or 0 for restraint assignment, treating any non-zero values as 1
     valsList = double(valsList~=0);
 
-    rod = assignLoadResDisp('res', rod, nodesList, dofsList, valsList);
+    rod = assignLoadResDisp('res', rod, nodesList, dofsList, valsList, tagsList);
 
     % % Make a cell array of the blocked dofs grouped by nodes
     % ids = arrayfun(@(n) node2dof(n, dofsList), nodesList, 'UniformOutput', false);

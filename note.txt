@@ -1,10 +1,10 @@
 ToDo:
-
-Add time series: rect, linear, triangular
-Make code dynamic
-Add beta newmark may be?
-Add sparse matrix implementation
 Make code object oriented
+Implement model check: no load/disp in constrained dofs
+
+Issues:
+Force readings needs to account for damping, Fi or Fe to get force output?
+Need to update recorder for correct force readings
 
 
 Note:

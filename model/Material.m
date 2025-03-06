@@ -17,14 +17,3 @@ classdef Material
         end
     end
 end
-
-% function str = MaterialE, nu, rho)
-%     % Returns a struct of material
-    
-%     % E = Modulus of elasticity
-%     % nu = Poisson's ratio
-%     % rho = Material density
-
-%     str = struct('E', E, 'nu', nu, 'rho', rho);
-    
-% end

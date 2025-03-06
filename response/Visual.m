@@ -5,24 +5,21 @@ classdef Visual
         deformed    % For deformed shape plot
         triad       % For triads in on the deformed shape
         nodetags    % For node tags
-        dispdofs    % Displacement plot dofs
-        forcedofs   % Force plot dofs
+        dofs        % Plot dofs matrix
 
     end
 
     methods
 
         function obj = Visual(varargin)
-            % visual: Constructor for the visual class.
             % Initializes visualization settings.
 
             % Initialize properties with default values
             obj.deformed = false;
             obj.triad = false;
             obj.nodetags = false;
-            obj.dispdofs = [];
-            obj.forcedofs = [];
-
+            obj.dofs = [];
+            
             % Number of arguments
             numArgs = length(varargin);
 
@@ -39,8 +36,7 @@ classdef Visual
                     case 'deformed', obj.deformed = val;
                     case 'triad', obj.triad = val;
                     case 'node', obj.nodetags = val;
-                    case 'disp', obj.dispdofs = processDofs(val, 'disp');
-                    case 'force', obj.forcedofs = processDofs(val, 'force');
+                    case 'dofs', obj.dofs = processDofs(val);
 
                     otherwise, error(['Unknown key: ', key]);
                 end

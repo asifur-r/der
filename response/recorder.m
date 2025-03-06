@@ -1,4 +1,4 @@
-function recorder(rec, Rods, t, lam)
+function recorder(rec, Rods, t, sol)
     % Writes displacements of node/s in a file as a column matrix [u1 u2 ...]
 
     % t = current pseudo time step
@@ -10,13 +10,13 @@ function recorder(rec, Rods, t, lam)
     if t == 1; permission = 'w'; else; permission = 'a'; end
       
     % Record responses
-    if ~isempty(rec.dispfile); recordResponse('disp', rec.dispfile, rec.dispdofs, Rods, lam, permission); end
-    if ~isempty(rec.forcefile); recordResponse('force', rec.forcefile, rec.forcedofs, Rods, lam, permission); end
+    if ~isempty(rec.dispfile); recordResponse('disp', rec.dispfile, rec.dispdofs, Rods, sol, permission); end
+    if ~isempty(rec.forcefile); recordResponse('force', rec.forcefile, rec.forcedofs, Rods, sol, permission); end
     
 
 end
 
-function recordResponse(variable, filename, dofstr, Rods, lam, permission)
+function recordResponse(variable, filename, dofstr, Rods, sol, permission)
     % Generic function to record responses (displacements or forces).
 
     file = fopen(filename, permission); if file == -1; error(['Could not open file: ', filename]); end
@@ -25,7 +25,7 @@ function recordResponse(variable, filename, dofstr, Rods, lam, permission)
     nresponse = length(dofstr);
 
     % Recorder string
-    str = sprintf('%.3f', lam);
+    str = sprintf('%.3f', sol.t);
 
     for i = 1:nresponse
 

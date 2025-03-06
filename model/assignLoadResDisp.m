@@ -1,4 +1,4 @@
-function rod = assignLoadResDisp(parameter, rod, nodesList, dofsList, valsList)
+function rod = assignLoadResDisp(parameter, rod, nodesList, dofsList, valsList, tagsList)
     % Takes a single rod struct and assigns either load, restraint or prescribed displacements
 
     % parameter = 'load', 'restraint', 'disp'
@@ -11,8 +11,9 @@ function rod = assignLoadResDisp(parameter, rod, nodesList, dofsList, valsList)
     [A, B] = meshgrid(nodesList, dofsList); pairs = [A(:), B(:)];
 
     % Check if valsList has correct length
-    npairs = size(pairs, 1); nvals = length(valsList);
+    npairs = size(pairs, 1); nvals = length(valsList); ntags = length(tagsList);
     assert(nvals == 1 || nvals == npairs, "Incorrect length of %s values, must be 1 or %d", parameter, npairs);
+    assert(ntags == 1 || ntags == nvals, "Time series tags length must be 1 or %d", ntags);
 
     % Just store into two separate vectors
     % nodes = pairs(:, 1); dofs = pairs(:, 2);
@@ -29,10 +30,18 @@ function rod = assignLoadResDisp(parameter, rod, nodesList, dofsList, valsList)
     % Everything good, now assign
 
     switch parameter
-        case 'fext'; rod.fext(rowIds) = valsList;
-        case 'res'; rod.res(rowIds) = valsList;
-        case 'prdisp'; rod.prdisp(rowIds) = valsList;
-            
+        case 'fext'
+            rod.fext(rowIds) = valsList; 
+            rod.fextTag(rowIds) = tagsList + 1;
+
+        case 'res' 
+            rod.res(rowIds) = valsList; 
+            rod.resTag(rowIds) = tagsList + 1;
+
+        case 'prdisp'
+            rod.prdisp(rowIds) = valsList;
+            rod.prdispTag(rowIds) = tagsList + 1;
+        
         otherwise; error("Assignment type must be either fext, res or pdisp")
     end
     

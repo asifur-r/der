@@ -26,6 +26,7 @@ function [vec, val] = freeSysDofs(Rods, ana)
 
         % Return
         val = nfreedofs;
+        % vec = freedofs;
         vec = freedofs;
         
     end

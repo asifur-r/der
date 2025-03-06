@@ -3,7 +3,7 @@ classdef Analysis
 
     properties (SetAccess = private, GetAccess = public)
         type        % Analysis type: 'static' or 'dynamic'
-        lam0        % Increment for NR, or first lambda for MGDM
+        % lam0        % Increment for NR, or first lambda for MGDM
         tf          % Final time t (for dynamic)
         dt          % Time step (for dynamic)
         solver      % Solver type ('nr' or 'mgdm')
@@ -22,31 +22,29 @@ classdef Analysis
         alpha       % Rayleigh damping parameter
         beta        % Rayleigh damping parameter
         eta         % Viscous damping parameter
+
+        timeSeries  % Time series array
     end
 
     methods
         
-        function obj = Analysis(varargin)
-
-            % Valid function calls: analysis('static', lam0), analysis('dynamic', dt, tfinal)
-            
+        function obj = Analysis(type, tf, dt)
+            % Analysis constructor
+                        
             % Check analysis type
-            assert(strcmp(varargin{1}, 'static') || strcmp(varargin{1}, 'dynamic'), ...
+            assert(strcmp(type, 'static') || strcmp(type, 'dynamic'), ...
                 "Supported analysis types are: 'static' and 'dynamic'.");
 
             % Initialize analysis type
-            obj.type = varargin{1};
-           
-            switch obj.type
-                case 'static'
-                    assert(nargin == 2, "Static analysis requires lam0.");
-                    obj.lam0 = varargin{2};
+            obj.type = type;
+            obj.tf = tf;
+            obj.dt = dt;
 
-                case 'dynamic'
-                    assert(nargin == 3, "Dynamic analysis requires tfinal and dt.");
-                    obj.tf = varargin{2};
-                    obj.dt = varargin{3};
-            end
+        end
+
+        function obj = TimeSeries(obj, seriesArray)
+            % Set time series array
+            obj.timeSeries = seriesArray;
 
         end
 
@@ -119,17 +117,14 @@ classdef Analysis
             % Validate the analysis parameters
             assert(~isempty(obj.type), "Analysis type must be set.");
             assert(~isempty(obj.solver), "Solver type must be set.");
-            assert(~isempty(obj.lam0), "lam0 must be set.");
+            assert(~isempty(obj.tf), "tf must be set.");
+            assert(~isempty(obj.dt), "dt must be set.");
             assert(~isempty(obj.maxiter), "maxiter must be set.");
             assert(~isempty(obj.tol), "tol must be set.");
             assert(~isempty(obj.constraint), "constraint must be set.");
 
             if strcmp(obj.constraint, 'penalty') && isempty(obj.penalty)
                 error("Penalty value is required for 'penalty' constraint.");
-            end
-
-            if strcmp(obj.type, 'dynamic') && (isempty(obj.tf) || isempty(obj.dt))
-                error("tf and dt are required for 'dynamic' analysis.");
             end
 
             if ~isempty(obj.damping) && strcmp(obj.damping, 'rayleigh') && (isempty(obj.alphaR) || isempty(obj.betaR))

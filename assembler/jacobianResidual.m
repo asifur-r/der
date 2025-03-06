@@ -1,16 +1,16 @@
 function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     
     % Locally define variables
-    lam = sol.lam; Fext = sol.Fext; fr = sys.frdof; nfr = sys.nfrdof;
+    fr = sys.frdof; nfr = sys.nfrdof; Fext = sol.Fext; dt = ana.dt; betaN = ana.betaN;
 
     % Get system level internal force and stiffness (only stacks F and K for multi rods)
     [Fi, Kt] = stackForceStiffness(Rods);
     
     % Add linker penalty force and stiffness
     if ~isempty(conn); [Fl, Kl] = linkerPenaltyFULL(Rods, conn, sys); Fi = Fi+Fl; Kt = Kt+Kl; end
-    
-    % Full sized internal force vector (only required for post processing in driver.m)
-    sol.Fi = Fi;
+
+    % Store full sized Fi, used in livplot, recorder
+    sol.FINT = Fi;
 
     % Based on constraint type calculate required things and set the other case things to zero
     switch ana.constraint
@@ -34,7 +34,7 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     % for penalty, fr referes to all dofs, which gives the entire vector/matrix
 
     % External force vector
-    Fe = lam*Fext(fr) + Fcp + Fpd;
+    Fe = sol.FextFactor(fr).*Fext(fr) + Fcp + Fpd;
 
     % Internal force vector
     Fi = Fi(fr);
@@ -43,7 +43,7 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     R = Fe - Fi;
 
     % Stiffness matrix
-    Kt = Kt(fr, fr);
+    Kt = Kt(fr, fr) + Kcp;
 
     % Jacobian
     J = Kt + Kcp;
@@ -56,31 +56,41 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
 
         % Damping force
         if ~isempty(ana.damping) 
-            switch ana.damping
-                
-                case 'vertices'
-                    % Fd = ana.eta * ones(nfr, 1) .* sol.vp(fr);
-                    % C = ana.eta  * eye(nfr) * ones(nfr, 1) * ana.dt;
+            
+            C = rayleighDamping(M, Kt, ana.alpha, ana.beta);
+            Fd = C * sol.vp(fr);
 
-                case 'rayleigh' 
-                    C = rayleighDamping(M, Kt, ana.alpha, ana.beta);
-                    Fd = C * sol.vp(fr);
-            end
+            % Add damping to the external force vector
+            Fe = Fe + Fd * dt;
+
         else
             % No damping
-            Fd = 0; C = 0;
+            C = 0; %Fd = 0;
         end
 
-        % Jacobian
-        J = J + M / ana.dt^2 + C / ana.dt;
-        
-        % Residual
-        R = Fe - Fi - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * ana.dt + Fd * ana.dt;
+        % Update Jacobian and residual
+        if strcmp(ana.integration, 'euler')
+            
+            % J = J + M / dt^2 + C / dt;
+            J = J * dt^2 + M + C * dt;
 
+            % R = R - M * (sol.u(fr) - sol.up(fr)) / dt^2 + M * sol.vp(fr) / dt;
+            R = R * dt^2 - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * dt;
+        
+        elseif strcmp(ana.integration, 'newmark')
+            
+            J = J * dt^2 * betaN^2 + M + C * dt;    
+            R = R * dt^2 * betaN^2 + (sol.Fep(fr) - sol.Fip(fr)) * dt^2 * betaN * (1 - betaN) - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * dt;
+            
+        end
+        
 
     end
 
     sol.J = J;
     sol.R = R;
+
+    sol.Fe = Fe;
+    sol.Fi = Fi;
 
 end

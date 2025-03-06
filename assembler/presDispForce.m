@@ -7,7 +7,8 @@ function Fpd = presDispForce(sys, sol, Kt)
     if sys.nprddof ~= 0 % Checkf if there is any prescribed displacement
 
         % Computue force vector 
-        Fpd = -Kt(fr, pr) * (sol.lam*sol.Prdisp(pr) - sol.u(pr));
+        % Fpd = -Kt(fr, pr) * (sol.lam*sol.Prdisp(pr) - sol.u(pr));
+        Fpd = -Kt(fr, pr) * (sol.PrdispFactor(pr).*sol.Prdisp(pr) - sol.u(pr));
 
     else % Return a zero vector
 

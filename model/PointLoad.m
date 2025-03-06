@@ -1,6 +1,6 @@
-function rod = PointLoad(rod, nodesList, dofsList, loadsList)
+function rod = PointLoad(rod, nodesList, dofsList, loadsList, tagsList)
     
-    rod = assignLoadResDisp('fext', rod, nodesList, dofsList, loadsList);
+    rod = assignLoadResDisp('fext', rod, nodesList, dofsList, loadsList, tagsList);
 
     % % Check dimensions
     % assert(length(nodesList) == length(dofsList) && length(dofsList) == length(loadsList), 'Lists must have the same length');

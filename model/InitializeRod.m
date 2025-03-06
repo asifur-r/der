@@ -2,8 +2,8 @@ function R = InitializeRod(points, sec, mat)
     % Returns rod struct
 
     % points = [x y z], 3 column coordinate matrix
-    % sec = section struct
-    % mat = material struct
+    % sec = section object
+    % mat = material object
     
     R = struct();
 
@@ -27,6 +27,12 @@ function R = InitializeRod(points, sec, mat)
     R.res = zeros(R.ndof, 1);
     R.fext = zeros(R.ndof, 1);
     R.prdisp = zeros(R.ndof, 1);
+
+    % Corresponding time series tags
+    R.resTag = ones(R.ndof, 1);
+    R.fextTag = ones(R.ndof, 1);
+    R.prdispTag = ones(R.ndof, 1);
+
     % Kinematics
     [...
     R.enormbar, ...
