@@ -7,7 +7,10 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     [Fi, Kt] = stackForceStiffness(Rods);
     
     % Add linker penalty force and stiffness
-    if ~isempty(conn); [Fl, Kl] = linkerPenaltyFULL(Rods, conn, sys); Fi = Fi+Fl; Kt = Kt+Kl; end
+    if ~isempty(conn); [Fl, Kl] = linkerPenaltySPARSE(Rods, conn, sys); Fi = Fi+Fl; Kt = Kt+Kl; end
+    
+    % Add equal dof penalty force and stiffness
+    if ~isempty(ana.equalDof); [Feq, Keq] = equalDofPenaltySPARSE(ana, sol, sys); Fi = Fi+Feq; Kt = Kt+Keq; end
 
     % Store full sized Fi, used in livplot, recorder
     sol.FINT = Fi;
@@ -20,10 +23,10 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
             Fpd = presDispForce(sys, sol, Kt);
             
             % Make the penalty terms zero
-            Fcp = zeros(nfr, 1); Kcp = zeros(nfr);
+            Fcp = zeros(nfr, 1); Kcp = sparse(nfr, nfr);
 
         case 'penalty'
-            [Fcp, Kcp] = constraintPenaltyFULL(ana, sol, sys);
+            [Fcp, Kcp] = constraintPenaltySPARSE(ana, sol, sys);
 
             % Make prescribed forces zero
             Fpd = zeros(nfr, 1);
@@ -34,7 +37,7 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     % for penalty, fr referes to all dofs, which gives the entire vector/matrix
 
     % External force vector
-    Fe = sol.FextFactor(fr).*Fext(fr) + Fcp + Fpd;
+    Fe = Fext(fr) + Fcp + Fpd;
 
     % Internal force vector
     Fi = Fi(fr);
@@ -47,12 +50,12 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
 
     % Jacobian
     J = Kt + Kcp;
-
+    
     % Add dynamic terms to J and R if necessary
     if strcmp(ana.type, 'dynamic')
 
         % Mass matrix
-        M = massMatrixFULL(sol.Mdiag); M = M(fr, fr);
+        M = massMatrixSPARSE(sol.Mdiag); M = M(fr, fr);
 
         % Damping force
         if ~isempty(ana.damping) 
@@ -65,12 +68,12 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
 
         else
             % No damping
-            C = 0; %Fd = 0;
+            C = sparse(nfr); %Fd = 0;
         end
 
         % Update Jacobian and residual
         if strcmp(ana.integration, 'euler')
-            
+			
             % J = J + M / dt^2 + C / dt;
             J = J * dt^2 + M + C * dt;
 
@@ -82,13 +85,12 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
             J = J * dt^2 * betaN^2 + M + C * dt;    
             R = R * dt^2 * betaN^2 + (sol.Fep(fr) - sol.Fip(fr)) * dt^2 * betaN * (1 - betaN) - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * dt;
             
-        end
-        
+        end   
 
     end
-
-    sol.J = J;
-    sol.R = R;
+    
+    sol.J = sparse(J);
+    sol.R = sparse(R);
 
     sol.Fe = Fe;
     sol.Fi = Fi;

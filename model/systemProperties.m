@@ -2,6 +2,7 @@ classdef systemProperties
     % Defines class for system properties
 
     properties (SetAccess = private, GetAccess = public)
+
         nRods       % Number of rods
         
         dof         % System dof tags
@@ -17,10 +18,10 @@ classdef systemProperties
         frdof       % Free system dof tags
         nfrdof      % Number of free system dof
 
-        timeSeries  % Array storing TimeSeries object
     end
 
     methods
+
         function obj = systemProperties(Rods, ana) % Constructor
 
             obj.nRods = length(Rods);
@@ -29,14 +30,10 @@ classdef systemProperties
             obj.ndofpr = ndofsPerRod(Rods);
 
             [obj.resdof, obj.nresdof] = resDofs(Rods);
-
             [obj.prddof, obj.nprddof] = presDispDofs(Rods);
-
             [obj.frdof, obj.nfrdof] = freeSysDofs(Rods, ana);
 
-            % Add a default constant time series of zero value beforehand
-            obj.timeSeries = [Series('constant', 0), ana.timeSeries];
-
         end
+        
     end
 end

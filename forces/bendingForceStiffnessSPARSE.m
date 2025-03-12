@@ -7,18 +7,22 @@ function [Fb, Kb] = bendingForceStiffnessSPARSE(t, enorm, kapb, kap1, kap2, kap1
     [bendGrad1, bendGrad2] = bendingGradient(t, enorm, kapb, kap1, kap2, m1, m2);
     [bendHess1, bendHess2] = bendingHessian(t, enorm, kapb, kap1, kap2, m1, m2);
 
-    % Preallocate force vector
-    Fb = zeros(ndof, 1);
-
     % Preallocate sparse storage
-    max_entries = 121 * (nele - 1); % Upper bound (each 11x11 block)
-    I = zeros(max_entries, 1);
-    J = zeros(max_entries, 1);
-    V = zeros(max_entries, 1);
-    count = 0;
+    lengthK = 121 * (nele - 1); % Upper bound (each 11x11 block)
+    IK = zeros(lengthK, 1);
+    JK = zeros(lengthK, 1);
+    VK = zeros(lengthK, 1);
+    countK = 0;
+
+    % Preallocate sparse storage for force vector
+    lengthF = 11 * (nele - 1); % Each iteration contributes to 11 DOFs
+    countF = 0;
+    IF = zeros(lengthF, 1);
+    VF = zeros(lengthF, 1);
 
     % Assemble force and stiffness
     for i = 2:nele
+
         % Compute force contributions
         fb1 = (EIx(i) / ellbar(i)) * (kap1(i) - kap1bar(i)) * bendGrad1(i, :)';
         fb2 = (EIy(i) / ellbar(i)) * (kap2(i) - kap2bar(i)) * bendGrad2(i, :)';
@@ -27,8 +31,11 @@ function [Fb, Kb] = bendingForceStiffnessSPARSE(t, enorm, kapb, kap1, kap2, kap1
         p = 1 + 4*(i-2);
         q = p + 10;
 
-        % Assemble force vector
-        Fb(p:q) = Fb(p:q) + fb1 + fb2;
+        % Store element force vector
+        ids = countF + (1:11);
+        IF(ids) = (p:q)';
+        VF(ids) = fb1 + fb2;
+        countF = countF + 11;
 
         % Compute element stiffness matrix
         A = (EIx(i) / ellbar(i)) * (bendGrad1(i, :)' * bendGrad1(i, :));
@@ -38,21 +45,11 @@ function [Fb, Kb] = bendingForceStiffnessSPARSE(t, enorm, kapb, kap1, kap2, kap1
         kb = A + B + C + D;
 
         % Store stiffness matrix entries
-        [I, J, V, count] = addBlock(I, J, V, count, p:q, p:q, kb);
+        [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p:q, p:q, kb);
     end
 
-    % Construct sparse stiffness matrix
-    Kb = sparse(I(1:count), J(1:count), V(1:count), ndof, ndof);
+    % Construct sparse matrices
+    Fb = sparse(IF, ones(length(IF), 1), VF, ndof, 1);
+    Kb = sparse(IK, JK, VK, ndof, ndof);
 
-    %[ndof count max_entries]
-end
-
-function [I, J, V, count] = addBlock(I, J, V, count, row_idx, col_idx, block)
-    % Efficiently adds a block to sparse matrix triplet format
-    [rr, cc] = ndgrid(row_idx, col_idx);
-    n = numel(rr);
-    I(count+1:count+n) = rr(:);
-    J(count+1:count+n) = cc(:);
-    V(count+1:count+n) = block(:);
-    count = count + n;
 end

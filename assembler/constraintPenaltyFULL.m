@@ -14,8 +14,7 @@ function [Fcp, Kcp] = constraintPenaltyFULL(ana, sol, sys)
     Kcp = Kcp_r + Kcp_pd;
 
     % Constraint penalty force vector
-    % Fcp = Kcp*(sol.lam*sol.Prdisp - sol.u);
-    Fcp = Kcp*(sol.PrdispFactor.*sol.Prdisp - sol.u);
+    Fcp = Kcp * (sol.Prdisp - sol.u);
 
 end
 

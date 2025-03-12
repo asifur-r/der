@@ -1,7 +1,7 @@
 function pairs = rodPairs(rods, roundTol)
 
     % Exit for single rod case
-    if length(rods) == 1; pairs = []; return; end
+    if isscalar(rods); pairs = []; return; end
 
     % Number of rods
     nrods = length(rods);
@@ -17,21 +17,21 @@ function pairs = rodPairs(rods, roundTol)
 
     % Loop through all pairs of coordinate matrix
     for i = 1:nrods
-        for j = i+1:nrods
+    for j = i+1:nrods
 
-            % Find the intersecting (common) point/s coordinate, and row ids of both rods
-            [comPts, rowI, rowJ] = intersect(C{i}, C{j}, 'rows');
-            
-            % Number of common points
-            nComPts = size(comPts, 1);
-            
-            % Check for multi point intersection
-            assert(nComPts <= 1, "Rods %d and %d has multiple intersection", i, j);
+        % Find the intersecting (common) point/s coordinate, and row ids of both rods
+        [comPts, rowI, rowJ] = intersect(C{i}, C{j}, 'rows');
+        
+        % Number of common points
+        nComPts = size(comPts, 1);
+        
+        % Check for multi point intersection
+        assert(nComPts <= 1, "Rods %d and %d has multiple intersection", i, j);
 
-            % Add the intersecting pair to the list if found
-            if nComPts == 1; pairs = [pairs; i, j]; comPtsId = [comPtsId; rowI, rowJ]; end
-
-        end
+        % Add the intersecting pair to the list if found
+        if nComPts == 1; pairs = [pairs; i, j]; comPtsId = [comPtsId; rowI, rowJ]; end
+        
+    end
     end
     
     % By default rod pairs are automatically sorted
@@ -66,8 +66,6 @@ function pairs = validatePairs(rods, pairs, comPtsId)
     
     for i=1:npairs
 
-        %fprintf("Checking rod %d, %d. ", pairs(i, 1), pairs(i, 2));
-
         % Get rods struct
         rodA = rods(pairs(i, 1));
         rodB = rods(pairs(i, 2));
@@ -75,8 +73,6 @@ function pairs = validatePairs(rods, pairs, comPtsId)
         % Extract which point is the intersection point
         rodAPtId = comPtsId(i, 1);
         rodBPtId = comPtsId(i, 2);
-
-        %fprintf("Intersects at %d, %d. ", rodAPtId, rodBPtId);
 
         % Check intersecting point position
         if rodAPtId == rodA.n && rodBPtId == 1 % if first point of rod A, and last point of rod B
@@ -93,8 +89,8 @@ function pairs = validatePairs(rods, pairs, comPtsId)
         
     end
 
-    validPairs = pairs(isvalid, :); %disp("Valid pairs:"); validPairs
-    notValidPairs = pairs(~isvalid, :); %disp("Not valid pairs:"); notValidPairs
+    validPairs = pairs(isvalid, :);
+    % notValidPairs = pairs(~isvalid, :);
 
     % Return
     pairs = sortrows(validPairs);

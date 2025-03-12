@@ -1,27 +1,27 @@
 function solution = DER(rods, linkspec, ana, visual, monitor, rec)
-
+    
 % Generate linker rods
-[linkers, conn] = linkerRods(rods, linkspec);
+[linkers, conn] = linkerRodsNew(rods, linkspec);
 
 % Contains both regular and linker ders
 Rods = [rods, linkers];
+
+% Number of actual rod
+nrods = length(rods);
 
 % Initialize solver stuct
 sol = solver(Rods);
 
 while sol.t <= ana.tf
 
-    % System properties struct
-    sys = systemProperties(Rods, ana);
-
     % Update time step
     sol.t = sol.t + ana.dt; fprintf("STEP: %.2f ------------ \n", sol.t)
+    
+    % Update time dependant properties
+    [Rods, sol] = assignTimeDependants(Rods, ana, sol, nrods);
 
-    % Update load factor
-    % if strcmp(ana.solver, 'nr'); sol.lam = sol.t/ana.tf; end%sol.lam + ana.lam0; end
-
-    % Get time series factors for load, prescribed disp, and restraint
-    sol = timeSeriesFactors(sys, sol);
+    % Initialize properties
+    sys = systemProperties(Rods, ana);
 
     % Initialize displacement vector for iteration
     sol.u = sol.up;
@@ -34,19 +34,14 @@ while sol.t <= ana.tf
         
         % Solve for current iteration
         [sol.du, sol.dl, sol.err] = solveIteration(ana, sys, sol);
-        
-        % Update load factor
-        % sol.lam = sol.lam + sol.dl;
-        
+
         % Update displacement vector
         switch ana.constraint
             case 'elimination'
-                %sol.u = sol.u + sol.W * sol.du; sol.Fi = sol.W * sol.Fi;
                 sol.u(sys.frdof) = sol.u(sys.frdof) + sol.du;
                 
                 % Insert prescribed displacement (if any) directly into the solution
-                % if sys.nprddof ~= 0; sol.u(sys.prddof) = sol.lam*sol.Prdisp(sys.prddof); end
-                if sys.nprddof ~= 0; sol.u(sys.prddof) = sol.PrdispFactor(sys.prddof).*sol.Prdisp(sys.prddof); end
+                if sys.nprddof ~= 0; sol.u(sys.prddof) = sol.Prdisp(sys.prddof); end
                   
             case 'penalty'
                 sol.u = sol.u + sol.du;
@@ -99,7 +94,8 @@ while sol.t <= ana.tf
     % Print monitor variables for each step
     if ~isempty(monitor) & ~isempty(monitor.step); eval(monitor.step); end
  
-    pause(2)
+    % pause(2)
+
 end
 
 % Plot final results

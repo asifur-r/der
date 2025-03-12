@@ -51,7 +51,7 @@ function livePlot(Rods, sol, visual)
 
         % Plot
         plot(x, y, '-ob');
-        title(strcat('Rod:', num2str(d.rod), ' Node:', num2str(d.node), ' dof:', num2str(d.dof) ))
+        title(strcat('Rod:', num2str(d.rod), ' Node:', num2str(d.node), ' dof:', num2str(d.dof), ' Time:', num2str(sol.t) ))
         xlabel('Disp.')
         ylabel('Internal Force')
         hold on

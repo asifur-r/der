@@ -7,10 +7,14 @@ function val = node2sysdof(rodTag, nodeTag, localdof, ndofspr)
     % Node per rod list
     npr = (ndofspr + 1) / 4;
 
-    % Do some checks before proceeding
+    % Check if the rod exists
     assert(rodTag <= length(npr), "Rod %d does not exist.", rodTag);
+
+    % Check if the target node exist in the rod
     assert(nodeTag <= npr(rodTag), "Node %d does not exist in Rod %d.", nodeTag, rodTag);
-    assert(~(nodeTag == npr(rodTag) && localdof == 4), "Last node %d in Rod %d does not have twist.", nodeTag, rodTag);
+
+    % Check for the last node, the target dof isn't 4
+    assert(~(nodeTag == npr(rodTag) && any(localdof == 4)), "Last node %d in Rod %d does not have twist.", nodeTag, rodTag);
 
     % Rod level dof
     roddof = node2dof(nodeTag, localdof);

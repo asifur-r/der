@@ -27,8 +27,8 @@ function [linkers, connection] = linkerRods(rods, linkspec)
     linkerCtr = 1;
 
     % Use the connection struct to define two edges of the linker
-    conn1 = connnection(); % Holds info on the first edge pair (main rod and a linker)
-    conn2 = connnection(); % Holds info on the second edge pair (the other main rod and the same linker)
+    conn1 = connStruct(); % Holds info on the first edge pair (main rod and a linker)
+    conn2 = connStruct(); % Holds info on the second edge pair (the other main rod and the same linker)
 
     % Schematic for two rods and a linker
     % --------------------------------
@@ -40,7 +40,7 @@ function [linkers, connection] = linkerRods(rods, linkspec)
     %      || conn1
     %      || 
     %      O ======== O ----  Rod B
-    %           conn2            
+    %          conn2            
     % --------------------------------
 
     for i = 1:npairs
@@ -120,10 +120,10 @@ function [linkers, connection] = linkerRods(rods, linkspec)
 
 end
 
-function str = connnection()
+function str = connStruct()
 
-    % Returns the struct that can store information of which main rod is connected to which linker,
-    % rod node to linker node connectivity and rod edge to linker edge connectivity
+    % Returns the struct that stores information of which regular rod is connected to which linker,
+    % regular rod node to linker node connectivity and rod edge to linker edge connectivity
 
     str = struct(... 
         'R', [], ... % Tag of regular rod R
@@ -137,7 +137,7 @@ function str = connnection()
         'e', [], ... % Connected edge from r (paired with E)
         ...
         'p', [], ... % Penalty
-        's', [] ... % Sign for edge coupling, +1 if their positive torsions are in same direction, -1 otherwise
+        's', []  ... % Sign for edge coupling, +1 if their positive torsions are in same direction, -1 otherwise
         );
 
     % Schematic for one edge pair
@@ -182,7 +182,7 @@ function val = torsionalCouplingSign(M, N, m, n)
     % M, N = nodes tag from main rod
     % m, n = corrensponding nodes tag from linker rod
 
-    % Cheking if tag paris are increasing or decreasing together (which makes same positive direction for torsion)
+    % Cheking if tag pairs are increasing or decreasing together (which makes same positive direction for torsion)
     if (M > N && m > n) || (M < N && m < n); val = 1; else; val = -1; end
 
 end

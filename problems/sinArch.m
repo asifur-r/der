@@ -18,65 +18,74 @@ axisY = [0 1 0];
 % --------------------------------------------------
 
 % Load (N or Nmm)
-M = 2000.0; % Torsional moment
+P = -2000.0;
+
+% Displacement (N or Nmm)
+D = -15.0;
 
 % --------------------------------------------------    
 % SECTION PROPERTIES
 % --------------------------------------------------
 
 %sec = Section(width, height);
-sec = Section(5, 5);
+sec = Section(5, 2);
 
 % --------------------------------------------------
 % MATERIAL PROPERTIES
 % --------------------------------------------------
 
 %mat = Material(E, nu, rho);
-mat = Material(2.2e3, 0.38, 1.2e-6);
+mat = Material(2.2e3, 0.38, 1.2e-4);
 
 % --------------------------------------------------
 % RODS GENERATION
 % --------------------------------------------------
 
 % Rod length
-L = 100; % mm
+L = 50; % mm
 
-% Number of vertices
-N = 51;
+% Rod height
+H = 25; % mm
 
-% Stiff part length
-sb = 1.0;
+% Number of vertices (must be odd)
+N = 35;
 
-% Generate base rods along X-axis
-alongX = straightLine(L, N, sb, sb);
+% Flat lengths
+a = 1; b = 5; c = 1;
 
-rods(1) = InitializeRod(alongX, sec, mat);
-% rods(2) = InitializeRod(Geometry.TranslateByVector(Geometry.RotateByAngle(alongX, axisZ, pi/2), [L 0 0]), sec, mat);
-rods(2) = InitializeRod(Geometry.TranslateByVector(Geometry.RotateByAngle(alongX, axisZ, pi/2), [L/2 -L/2 0]), sec, mat);
+% Generate rods
+arch = fullSinusoid(L, H, N, a, b, c);
+base = [arch(:, 1) zeros(N,2)];
+
+rods(1) = InitializeRod(arch, sec, mat);
+rods(2) = InitializeRod(base, sec, mat);
 
 % Optional: Check geometry by plotting
-% for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
-% return
+for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
 
 % --------------------------------------------------
 % RESTRAINT ASSIGNMENT
 % --------------------------------------------------
 
-TS = [Series('constant', 1), Series('linear', M/50, 0, 10)];
+TS = [Series('constant', 1), Series('sawtooth', D, 0, 12), Series('rectangular', 1, 0, 15)];
 
 % Assign restraints
-rods(1) = Restraint(rods(1), 1:2, 1:3, 1); rods(1) = Restraint(rods(1), 1, 4, 1);
-rods(2) = Restraint(rods(2), N-1:N, 1:3, 1); rods(2) = Restraint(rods(2), N-1, 4, 1);
+rods(1) = Restraint(rods(1), 1, 1:3, 1);
+rods(1) = Restraint(rods(1), N, 2:3, 1);
+rods(1) = Restraint(rods(1), N, 1, 3);
 
 % --------------------------------------------------
 % LOAD ASSIGNMENT
 % --------------------------------------------------
 
+cnode = ceil(N/2);
+
 % Assign loads
 % rods(1) = PointLoad(rods(1), 10, 4, M, 2); % Torsion in rod 1
 % rods(2) = PointLoad(rods(2), 10, 4, M, 2); % Torsion in rod 2
-% rods(1) = PointLoad(rods(1), N, 3, 2); % Tip load in rod 1
-rods(1) = Displacement(rods(1), N, 3, 2); % Tip displacement in rod 1
+% rods(1) = PointLoad(rods(1), cnode, 3, 2); % Tip load in rod 1
+rods(1) = Displacement(rods(1), cnode, 3, 2);
+% rods(2) = Displacement(rods(2), 2, 3, 2);
 
 % Record load values to file
 %loadFile = strcat('out/square_plus_mtheta_h=', num2str(Hs),'_load'); recordLoad(loadFile, rods);
@@ -85,21 +94,25 @@ rods(1) = Displacement(rods(1), N, 3, 2); % Tip displacement in rod 1
 % ROD PAIRS AND LINKER SPECS
 % --------------------------------------------------
 
-% Apply rounding to coordinates
-for r=1:length(rods); rods(r).points = round(rods(r).points, 6); end
+% % Coordinates rounding decimal places
+% roundTol = 6;
 
-% Find rod pairs for joints
-pairs = rodPairsNew(rods);
+% for r=1:length(rods); rods(r).points = round(rods(r).points, roundTol); end
 
-% Define linker
-penalty = 1e5; EMod = 1.0; mat.E = EMod*mat.E; link = linker(pairs, sec, mat, penalty);
+% % Find rod pairs for joints
+% pairs = rodPairs(rods, roundTol);
+
+% % Define linker
+% penalty = 1e5; EMod = 1.0; mat.E = EMod*mat.E; link = linker(pairs, sec, mat, penalty);
+
+link = [];
 
 % --------------------------------------------------
 % MONITORING SETUP
 % --------------------------------------------------
 
 % Inspection variables(rod, node, dof)
-liveDofs = [1 N 3];
+liveDofs = [1 cnode 3];
 
 % Visual
 vis = Visual('dofs', liveDofs, 'deformed', true);
@@ -114,24 +127,20 @@ rec = [];%Record('forcefile', 'force.txt', 'forcedofs', liveDisp);
 % ANALYSIS
 % --------------------------------------------------
 
-% --------------------------------------------------
-% ANALYSIS
-% --------------------------------------------------
-
 % Analysis object
-%ana = Analysis('static', 2, 1);
-ana = Analysis('dynamic', 2, 1);
+% ana = Analysis('static', 0.1);
+ana = Analysis('dynamic', 20, 0.2);
 
 % Integration
 ana = ana.Integration('euler');
-% ana = ana.Integration('newmark', 0.5);
+% ana = ana.Integration('newmark', 0.75);
 
 % Solver
 ana = ana.Solver('nr');
 % ana = ana.Solver('mgdm');
 
 % Convergence
-ana = ana.Convergence(1e-4, 100);
+ana = ana.Convergence(1e-6, 100);
 
 % Constraint
 ana = ana.Constraint('elimination');
@@ -143,6 +152,19 @@ ana = ana.Damping('rayleigh', 0.01, 0.001);
 % Time series
 ana = ana.TimeSeries(TS);
 % ana = ana.TimeSeries([Series('constant', 1), Series('triangular', 1, 4, 8, 12)]);
+
+% Equal dof constraint
+kp = 1e7;
+
+% Arch tops (y constraint)
+ana = ana.EqualDof(1, cnode-1, 1, cnode, 3, kp);
+ana = ana.EqualDof(1, cnode-1, 1, cnode+1, 3, kp);
+
+% Between rods
+for i = 2:6
+    ana = ana.EqualDof(1, i, 2, i, 1:3, kp);
+    ana = ana.EqualDof(1, N+1-i, 2, N+1-i, 1:3, kp);
+end
 
 % Call driver
 tic; S = DER(rods, link, ana, vis, mon, rec); toc

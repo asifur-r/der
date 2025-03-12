@@ -1,6 +1,9 @@
 function [F, K] = linkerPenaltyFULL(Rods, conn, sys)
     % Returns the penalty force vector and penalty stiffness matrix for linkers
 
+    % Extract the state vectors from each rod and make a cell array
+    qs = arrayfun(@(r) r.q, Rods, 'UniformOutput', false);
+
     % Initialize zero vectors and matrices
     F = zeros(sys.ndof, 1);
     K = zeros(sys.ndof);
@@ -15,13 +18,13 @@ function [F, K] = linkerPenaltyFULL(Rods, conn, sys)
         c = conn(i, j);
 
         % First node pair (positional), M-m
-        [F, K] = processNodePair(F, K, c.R, c.M, c.r, c.m, sys.ndofpr, Rods, c.p);
+        [F, K] = processNodePair(F, K, c.R, c.M, c.r, c.m, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
         
         % Second node pair (positional), N-n
-        [F, K] = processNodePair(F, K, c.R, c.N, c.r, c.n, sys.ndofpr, Rods, c.p);
+        [F, K] = processNodePair(F, K, c.R, c.N, c.r, c.n, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
 
         % Edge pair (angular), E-e
-        [F, K] = processEdgePair(F, K, c.R, c.E, c.r, c.e, sys.ndofpr, Rods, c.p);
+        [F, K] = processEdgePair(F, K, c.R, c.E, c.r, c.e, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
 
     end
     end
@@ -30,7 +33,7 @@ function [F, K] = linkerPenaltyFULL(Rods, conn, sys)
     assert(isequal(size(K), [1 1]*sys.ndof), 'Stiffness matrix size changed while adding penalty');
 end
 
-function [F, K] = processNodePair(F, K, R, N, r, n, ndofspr, Rods, p)
+function [F, K] = processNodePair(F, K, R, N, r, n, Rq, rq, p, ndofspr)
     % Binds positional dofs
     % N-th node from R-th regular rod with n-th node from r-th linker rod 
 
@@ -53,8 +56,8 @@ function [F, K] = processNodePair(F, K, R, N, r, n, ndofspr, Rods, p)
     K(r3:r4, r1:r2) = K(r3:r4, r1:r2) - pmat; % Bottom-left
 
     % Compute internal forces
-    RNq = Rods(R).q(node2dof(N, dofs)); % Position of node N from rod R
-    rnq = Rods(r).q(node2dof(n, dofs)); % Position of node n from rod r
+    RNq = Rq(node2dof(N, dofs)); % Position of node N from rod R
+    rnq = rq(node2dof(n, dofs)); % Position of node n from rod r
     fvec = p * (RNq - rnq); % 3x1 vector
 
     % Update Force terms
@@ -63,7 +66,7 @@ function [F, K] = processNodePair(F, K, R, N, r, n, ndofspr, Rods, p)
     
 end
 
-function [F, K] = processEdgePair(F, K, R, N, r, n, ndofspr, Rods, p)
+function [F, K] = processEdgePair(F, K, R, N, r, n, Rq, rq, p, ndofspr)
     % Binds torsional dofs
     % N-th edge from R-th regular rod with n-th edge from r-th linker rod 
 
@@ -80,8 +83,8 @@ function [F, K] = processEdgePair(F, K, R, N, r, n, ndofspr, Rods, p)
     K(r2, r1) = K(r2, r1) - p; % Bottom-left
 
     % Compute internal forces
-    RNq = Rods(R).q(node2dof(N, dof)); % Twist of edge N from rod R
-    rnq = Rods(r).q(node2dof(n, dof)); % Twist of edge n from rod r
+    RNq = Rq(node2dof(N, dof)); % Twist of edge N from rod R
+    rnq = rq(node2dof(n, dof)); % Twist of edge n from rod r
     f = p * (RNq - rnq); % scalar
 
     % Force terms

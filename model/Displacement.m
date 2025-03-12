@@ -1,6 +1,6 @@
-function rod = Displacement(rod, nodesList, dofsList, presDispsList, tagsList)
+function rod = Displacement(rod, nodesList, dofsList, tagsList)
 
-    rod = assignLoadResDisp('prdisp', rod, nodesList, dofsList, presDispsList, tagsList);
+    rod = assignLoadResDisp('prdisp', rod, nodesList, dofsList, tagsList);
 
     % % Assigns prescribed displacements to rod struct
 

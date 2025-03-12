@@ -16,7 +16,7 @@ derPath = '../'; addpath(genpath(derPath))
 sec = Section(5, 5);
 
 %mat = Material(E, nu, rho);
-mat = Material(2.2e3, 0.38, 1.2e-6);
+mat = Material(2.2e3, 0.38, 1.2e-4);
 
 % Rod length
 L = 100; % mm
@@ -41,28 +41,32 @@ P = 50;
 % Displacement (mm)
 D = 50;
 
+% Time series array
+% TS = [Series('constant', 1), Series('linear', P, 2, 5) Series('triangular', D, 0, 5, 10)];
+TS = [Series('rectangular', 1, 0, 5), Series('rectangular', 1, 5, 21), Series('triangular', P, 0, 5, 5.01)];
+
 % Assign restraints
-% rods(id) = Restraint(rods(id), node, dof, val, tstag);
-rods(1) = Restraint(rods(1), 1:2, 1:3, 1, 1);
-rods(1) = Restraint(rods(1), 1, 4, 1, 1);
+% rods(id) = Restraint(rods(id), node, dof, tstag);
+rods(1) = Restraint(rods(1), 1:2, 1:3, 1); rods(1) = Restraint(rods(1), 1, 4, 1);
+rods(1) = Restraint(rods(1), N-1:N, 1:3, 2); rods(1) = Restraint(rods(1), N-1, 4, 2);
 
 % Assign loads
-% rods(id) = PointLoad(rods(id), node, dof, val, tstag);
-rods(1) = PointLoad(rods(1), N, 3, P, 2);
-% rods(1) = Displacement(rods(1), N, 3, D, 3);
+% rods(id) = PointLoad(rods(id), node, dof, tstag);
+% rods(1) = PointLoad(rods(1), N/2, 3, 3);
+rods(1) = Displacement(rods(1), N-1:N, 3, 3);
 % rods(1) = Displacement(rods(1), N,   2, D/2);
 % rods(1) = Displacement(rods(1), N,   3, D  );
 % rods(1) = Displacement(rods(1), N-1, 4, D/30);
 
 % Define linker specifications
-linkspec = [];
+link = [];
 
 % --------------------------------------------------
 % MONITOR
 % --------------------------------------------------
 
 % Inspection variables(rod, node, dof)
-liveDofs = [1 N 3];
+liveDofs = [1 N-1 3; 1 N 3];
 
 % Visual
 vis = Visual('dofs', liveDofs, 'deformed', true);
@@ -72,15 +76,15 @@ mon = [];%Monitor('iter', 'sol.t', 'step', 'sol.lam');
 
 % Recorder
 rec = [];%Record('dispfile', 'disp.txt', 'dispdofs', [1 N 3]);
-% rec = Record('forcefile', 'force.txt', 'forcedofs', [1 N 3]);
 
 % --------------------------------------------------
 % ANALYSIS
 % --------------------------------------------------
 
 % Analysis object
-% ana = Analysis('static', 10, 0.1);
-ana = Analysis('dynamic', 10, 1);
+% Analysis(type, tfinal, dt);
+% ana = Analysis('static', 20, 0.1);
+ana = Analysis('dynamic', 20, 0.1);
 
 % Integration
 ana = ana.Integration('euler');
@@ -101,10 +105,10 @@ ana = ana.Constraint('elimination');
 ana = ana.Damping('rayleigh', 0.01, 0.001);
 
 % Time series
-ana = ana.TimeSeries([Series('constant', 1), Series('linear', 1, 0, 4), Series('linear', 1, 5, 10)]);
+ana = ana.TimeSeries(TS);
 % ana = ana.TimeSeries([Series('constant', 1), Series('triangular', 1, 1, 4, 8)]);
 
 % --------------------------------------------------
 
 % Call DER
-tic; S = DER(rods, linkspec, ana, vis, mon, rec); toc
+tic; S = DER(rods, link, ana, vis, mon, rec); toc

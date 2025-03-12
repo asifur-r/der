@@ -19,6 +19,5 @@ function [du, dl, err] = solveIteration(ana, sys, sol)
 
     % Norm of displacement increment
     err = norm(du);
-    
-    
+
 end

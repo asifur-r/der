@@ -7,20 +7,20 @@ function [f, k] = allForceStiffness(R)
     t     = tangentVectors(e);
 
     % STRETCHING
-    [Fs, Ks] = stretchingForceStiffnessFULL(t, enorm, R.enormbar, R.EA);
+    [Fs, Ks] = stretchingForceStiffnessSPARSE(t, enorm, R.enormbar, R.EA);
 
     % TWISTING
     kapb     = curvatureVectors(t);
     [a1, a2] = referenceDirectors(R.a1bar, R.tbar, t);
     mref     = referenceTwist(a1, t, R.mref);
     m        = integratedTwist(R.q, mref);
-    [Ft, Kt] = twistingForceStiffnessFULL(t, enorm, kapb, m, R.mbar, R.ellbar, R.GJ);
+    [Ft, Kt] = twistingForceStiffnessSPARSE(t, enorm, kapb, m, R.mbar, R.ellbar, R.GJ);
 
     % BENDING
     gam         = extractAngles(R.q);
     [m1, m2]    = materialDirectors(a1, a2, gam);
     [kap1, kap2]= curvature(m1, m2, kapb);
-    [Fb, Kb]    = bendingForceStiffnessFULL(t, enorm, kapb, kap1, kap2, R.kap1bar, R.kap2bar, m1, m2, R.ellbar, R.EIx, R.EIy);
+    [Fb, Kb]    = bendingForceStiffnessSPARSE(t, enorm, kapb, kap1, kap2, R.kap1bar, R.kap2bar, m1, m2, R.ellbar, R.EIx, R.EIy);
 
     % Return
     f = Fs + Ft + Fb;

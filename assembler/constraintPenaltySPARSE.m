@@ -12,7 +12,7 @@ function [Fcp, Kcp] = constraintPenaltySPARSE(ana, sol, sys)
     Kcp = Kcp_r + Kcp_pd;
 
     % Compute sparse-friendly constraint penalty force vector
-    Fcp = Kcp * (sol.lam .* sol.Prdisp - sol.u);
+    Fcp = Kcp * (sol.Prdisp - sol.u);
 
 end
 

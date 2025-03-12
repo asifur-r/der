@@ -1,6 +1,6 @@
 classdef Series
     properties
-        type    % 'constant', 'linear', 'rectangular', 'triangular', 'trapezoidal'
+        type    % 'constant', 'linear', 'rectangular', 'sawtooth', 'triangular', 'trapezoidal'
         value   % Peak value
         params  % Structure to hold ta, tb, tc, td
     end
@@ -25,6 +25,10 @@ classdef Series
                     assert(numel(varargin) == 2, 'Rectangular time series requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
 
+                case 'sawtooth'
+                    assert(numel(varargin) == 2, 'Sawtooth time series requires ta and tb.');
+                    [obj.params.ta, obj.params.tb] = deal(varargin{:});
+                
                 case 'triangular'
                     assert(numel(varargin) == 3, 'Triangular time series requires ta, tb, and tc.');
                     [obj.params.ta, obj.params.tb, obj.params.tc] = deal(varargin{:});
@@ -49,6 +53,8 @@ classdef Series
                     value = obj.linear(t);
                 case 'rectangular'
                     value = obj.rectangular(t);
+                case 'sawtooth'
+                    value = obj.sawtooth(t);
                 case 'triangular'
                     value = obj.triangular(t);
                 case 'trapezoidal'
@@ -78,7 +84,19 @@ classdef Series
         function value = rectangular(obj, t)
             ta = obj.params.ta;  
             tb = obj.params.tb;
-            value = (t >= ta && t <= tb);
+            value = (t >= ta && t < tb);
+        end
+
+        function value = sawtooth(obj, t)
+            ta = obj.params.ta;
+            tb = obj.params.tb;
+            if t < ta
+                value = 0;
+            elseif t < tb
+                value = (t - ta) / (tb - ta);
+            else
+                value = 0;
+            end
         end
 
         function value = triangular(obj, t)

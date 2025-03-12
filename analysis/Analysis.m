@@ -24,6 +24,7 @@ classdef Analysis
         eta         % Viscous damping parameter
 
         timeSeries  % Time series array
+        equalDof    % Multi point constraint
     end
 
     methods
@@ -39,6 +40,9 @@ classdef Analysis
             obj.type = type;
             obj.tf = tf;
             obj.dt = dt;
+
+            % Initialize
+            equalDof = {};
 
         end
 
@@ -110,6 +114,38 @@ classdef Analysis
                     obj.eta = varargin{1};
                     
             end
+
+        end
+
+        function obj = EqualDof(obj, masterRod, masterNode, slaveRod, slaveNode, dofs, penalty)
+            
+            newRow = [masterRod, masterNode, slaveRod, slaveNode];
+            
+            % Check for duplcate entry before entering
+            if ~isempty(obj.equalDof)
+
+                % Construct the matrix from the cell array of structs
+                matrix = cell2mat(cellfun(@(s) [s.masterRod, s.masterNode, s.slaveRod, s.slaveNode], obj.equalDof, 'UniformOutput', false)');
+
+                % Subtract the new row from existing rows
+                diffMatrix = matrix - newRow;
+
+                % Check for rows with all zeros
+                matchIndex = find(all(diffMatrix == 0, 2), 1);
+
+                if ~isempty(matchIndex)
+                    % Update dofs for the matching row
+                    obj.equalDof{matchIndex}.dofs = dofs;
+                    obj.equalDof{matchIndex}.penalty = penalty;
+                else
+                    % Append new struct and dofs
+                    obj.equalDof{end + 1} = struct('masterRod', masterRod, 'masterNode', masterNode, 'slaveRod', slaveRod, 'slaveNode', slaveNode, 'dofs', dofs, 'penalty', penalty);
+                end
+            else
+                % First entry
+                obj.equalDof{1} = struct('masterRod', masterRod, 'masterNode', masterNode, 'slaveRod', slaveRod, 'slaveNode', slaveNode, 'dofs', dofs, 'penalty', penalty);
+            end
+            
 
         end
 

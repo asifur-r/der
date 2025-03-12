@@ -6,7 +6,7 @@ function [nodeA, nodeB] = commonNode(tagA, pointsA, tagB, pointsB)
     % Find the common point
     [commNode, nodeA, nodeB] = intersect(pointsA, pointsB, 'rows');
     % nodeA and nodeB are actually the row indices in the pointsA and pointB matrix respectively
-
+   
     % Check if pairs have common nodes    
     assert(~isempty(commNode), "Rod %d and %d do not intersect", tagA, tagB);
 
