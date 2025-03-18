@@ -1,6 +1,6 @@
 function fullFilePath = validateFile(filename, fieldName)
-    % Validates filename structure, path, and adds txt extension.
-    % Removes any existing extension and adds .txt.
+    % Validates filename structure, path, and adds csv extension.
+    % Removes any existing extension and adds .csv.
 
     if ~ischar(filename)
         error(['Invalid ', fieldName, ': Filename must be a string.']);
@@ -19,7 +19,7 @@ function fullFilePath = validateFile(filename, fieldName)
         error(['Invalid ', fieldName, ': Filename contains invalid characters.']);
     end
 
-    % Construct the full file path with .txt extension
-    fullFilePath = fullfile(pathStr, [name, '.txt']);
+    % Construct the full file path with .csv extension
+    fullFilePath = fullfile(pathStr, [name, '.csv']);
     
 end

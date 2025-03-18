@@ -1,4 +1,4 @@
-function pairs = rodPairs(rods, roundTol)
+function pairs = RodPairsOld(rods, roundTol)
 
     % Exit for single rod case
     if isscalar(rods); pairs = []; return; end

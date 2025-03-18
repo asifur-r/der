@@ -92,7 +92,7 @@ rods(1) = PointLoad(rods(1), 15, 4, M/5); % At the second leg
 roundTol=6; for r=1:length(rods); rods(r).points = round(rods(r).points, roundTol); end
 
 % Find rod pairs for joints
-pairs = rodPairs(rods);
+pairs = RodPairs(rods);
 
 % Define linker specifications
 penalty = 1e5; EMod = 10.0; mat.E = mat.E*EMod; linkspec = linker(sec, mat, penalty);

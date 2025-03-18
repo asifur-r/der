@@ -69,7 +69,7 @@ rods = cell2struct(C, 'points');
 hold on; axis equal; for r=1:length(rods); plotRod(rods(r).points, false, r); end
 
 % Get pairs
-pairs = rodPairsNew(rods);
+pairs = RodPairsNew(rods);
 
 % Define linker
 link = linker(pairs, Section(1,1), Material(1,1,1), 1);

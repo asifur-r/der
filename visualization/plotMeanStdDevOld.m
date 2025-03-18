@@ -1,4 +1,4 @@
-function plotMeanStdDev(folderPath, n, cutoff)
+function plotMeanStdDevOld(folderPath, n, cutoff)
     % Function to plot the mean data with standard deviation shading
     %
     % Inputs:

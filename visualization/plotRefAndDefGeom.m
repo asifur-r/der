@@ -23,16 +23,16 @@ function plotRefAndDefGeom(qi, qf, r)
     else % Linker rod
 
         % Close the triangle by repeating the first point at the end and plot
-        fill3([pti(:,1); pti(1,1)], [pti(:,2); pti(1,2)], [pti(:,3); pti(1,3)], 'black')%, 'FaceAlpha', 0.5);
-        fill3([ptf(:,1); ptf(1,1)], [ptf(:,2); ptf(1,2)], [ptf(:,3); ptf(1,3)], 'red')%, 'FaceAlpha', 0.5);
+        % fill3([pti(:,1); pti(1,1)], [pti(:,2); pti(1,2)], [pti(:,3); pti(1,3)], 'black')%, 'FaceAlpha', 0.5);
+        % fill3([ptf(:,1); ptf(1,1)], [ptf(:,2); ptf(1,2)], [ptf(:,3); ptf(1,3)], 'red')%, 'FaceAlpha', 0.5);
 
     end
 
     axis equal
     %view([90 0])
 
-    plotRodTags(qi, r);
-    plotNodeTags(qi);
+    % plotRodTags(qi, r);
+    % plotNodeTags(qi);
 
     % colors = {'r', 'b', 'g', 'm', 'y'};
     % color = colors{r};

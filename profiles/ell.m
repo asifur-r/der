@@ -23,16 +23,3 @@ function mat = ell(L, N)
     mat = coords;
 
 end
-
-% function mat = ell(L, n)
-
-%     % L = length of each leg
-%     % n = total nodes (must be even)
-
-%     assert(mod(n, 2) == 0, 'Number of nodes of each leg must be even. N=%d provided', n);
-
-%     legA = [linspace(0, L, n/2+1)' zeros(n/2+1, 1) zeros(n/2+1, 1)];
-%     legB = [L*ones(n/2, 1) linspace(0, L, n/2)' zeros(n/2, 1)];
-%     mat = [legA(1:end-1,:); legB];
-
-% end

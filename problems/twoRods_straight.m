@@ -54,7 +54,7 @@ N = 15;
 sb = 1.0;
 
 % Generate base rods along X-axis
-alongX = straightLine(L, N, sb, sb);
+alongX = Profile.Straight(L, N, sb, sb);
 %alongY = Geometry.RotateByAngle(alongX, axisZ, pi/2);
 %alongZ = Geometry.RotateByAngle(alongX, axisY, -pi/2);
 %along045 = Geometry.RotateByAngle(alongX, axisZ, pi/4);
@@ -113,7 +113,7 @@ rods(1) = PointLoad(rods(1), 10, 4, M); % Torsion in rod 1
 roundTol=6; for r=1:length(rods); rods(r).points = round(rods(r).points, roundTol); end
 
 % Find rod pairs for joints
-pairs = rodPairs(rods);
+pairs = RodPairs(rods);
 
 % Define linker specifications
 penalty = 1e5; EMod = 1.0; linkspec = linker(w, h, EMod*E, nu, penalty);

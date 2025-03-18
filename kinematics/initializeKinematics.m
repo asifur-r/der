@@ -31,7 +31,6 @@ function [...
 
     mref = zeros(nele, 1); 
     mrefbar = mref;
-    %mref = referenceTwist(a1, t, mrefbar);
 
     m = integratedTwist(q, mref);
     mbar = m;

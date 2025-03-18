@@ -1,4 +1,4 @@
-function pairs = rodPairsNew(rods)
+function pairs = RodPairs(rods)
     % Returns a two column matrix defining rod pairs
 
     % Exit for single rod case

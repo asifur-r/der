@@ -1,177 +1,180 @@
 function [linkers, connection] = linkerRods(rods, linkspec)
-    % Returns linkers rod struct array and connection matrix 
+    % Returns linkers rod struct array and connection matrix (used for inserting penalty terms)
     % Doesn't create linker if edge pairs has negative torsional correlation
-
-    % rods = rods sturct
-    % linkspec = linker specification struct
 
     % No linker required for single rod case
     if isempty(linkspec); linkers = []; connection = []; return; end
 
-    % Construct the pairs matrix
-    pairs = arrayfun(@(i) i.pair, linkspec, 'UniformOutput', false); pairs = vertcat(pairs{:});
-        
-    % Check for duplicate rod pairs
-    checkDuplicatePairs(pairs);
-    
-    % Number of actual rods
+    % Number of actual rods (used for generating linker tag)
     nrods = length(rods);
 
-    % Number of pairs
-    npairs = length(linkspec);
+    % Construct the pairs matrix
+    pairs = arrayfun(@(i) i.pair, linkspec, 'UniformOutput', false); pairs = vertcat(pairs{:});
 
-    % Logical vector containing if linker is created (inside loop) between pairs
-    hasLinker = false(npairs, 1);
+    % Check for duplicate rod pairs
+    checkDuplicatePairs(pairs);
 
     % Linker counter
-    linkerCtr = 1;
+    countLink = 1;
 
-    % Use the connection struct to define two edges of the linker
-    conn1 = connStruct(); % Holds info on the first edge pair (main rod and a linker)
-    conn2 = connStruct(); % Holds info on the second edge pair (the other main rod and the same linker)
+    % Make a cell list of coordinates
+    C = arrayfun(@(r) r.points, rods, 'UniformOutput', false);
 
-    % Schematic for two rods and a linker
-    % --------------------------------
-    %  Rod A
-    %      |
-    %      |
-    %      O
-    %      ||
-    %      || conn1
-    %      || 
-    %      O ======== O ----  Rod B
-    %          conn2            
-    % --------------------------------
-
-    for i = 1:npairs
-
-        % pqr are the three points of the linker
-        % PQR are their counterparts in the regular rods A, B
-
-        % Get tags and struct of the main rods (A, B) associated with current linker
-        rodATag = linkspec(i).pair(1); rodA = rods(rodATag);
-        rodBTag = linkspec(i).pair(2); rodB = rods(rodBTag);
-
-        % Linker tag (updated inside loop)
-        linkTag = nrods + linkerCtr;
-
-        % Find the intersection (common) point Q of main rod A and B
-        % Q would be either the first or the last node of rod A and B
-        [nodeQA, nodeQB] = commonNode(rodATag, rodA.points, rodBTag, rodB.points);
-    
-        % Get the other connected node and edge for the main rods A, B
-        [nodeP, conn1E] = getOtherNodeAndEdge(nodeQA, rodA.n);
-        [nodeR, conn2E] = getOtherNodeAndEdge(nodeQB, rodB.n);
-  
-        % Define the first connection (Rr-Ee-Mm-Nn pairs)
-
-        conn1.R = rodATag;
-        conn1.r = linkTag;
-        conn1.E = conn1E;
-        conn1.e = 1;
-        conn1.M = nodeP;
-        conn1.m = 1;
-        conn1.N = nodeQA;
-        conn1.n = 2;
-        conn1.s = torsionalCouplingSign(conn1.M, conn1.N, conn1.m, conn1.n);
-        conn1.p = linkspec(i).penalty;
-
-        % Define the second connection (Rr-Ee-Mm-Nn pairs)
-
-        conn2.R = rodBTag;
-        conn2.r = linkTag;
-        conn2.E = conn2E;
-        conn2.e = 2;
-        conn2.M = nodeQB;
-        conn2.m = 2;
-        conn2.N = nodeR;
-        conn2.n = 3;
-        conn2.s = torsionalCouplingSign(conn2.M, conn2.N, conn2.m, conn2.n);
-        conn2.p = linkspec(i).penalty;
-
-        % Skip processing the linker if either edge pair has a negative torisional correlation
-        assert(conn1.s == 1, "Negative edge pair occured between rod %d and linker %d", conn1.R, conn1.r);
-        assert(conn2.s == 1, "Negative edge pair occured between rod %d and linker %d", conn2.R, conn2.r);
-
-        % Insert the connections into connection matrix
-        connection(linkerCtr, 1) = conn1; connection(linkerCtr, 2) = conn2;
-
-        % Get coordinates for points p, q, r
-        p = rodA.points(nodeP, :); % Point p From rod A
-        q = rodA.points(nodeQA, :);% The common point q (either from rod A or B)
-        r = rodB.points(nodeR, :); % Point r From rod A
-
-        % Generate the linker coordinates
-        points = [p; q; r];
-
-        % Generate the linker rod and insert into linkers matrix
-        linkers(linkerCtr) = InitializeRod(points, linkspec(i).section, linkspec(i).material);
-
-        % Update linker tag
-        linkerCtr = linkerCtr + 1;
+    % Loop through pairs of rods
+    for i = 1:length(linkspec)
         
-        % Update
-        hasLinker(i) = true;
+        % Get rod tags
+        [rodATag, rodBTag] = deal(pairs(i, 1), pairs(i, 2)); fprintf("Rod %d and %d: Linker - ", rodATag, rodBTag);
 
+        % Extract rod points
+        [ptsA, ptsB] = deal(C{rodATag}, C{rodBTag});
+
+        % Number of points in rod A and B
+        [nptsA, nptsB] = deal(size(ptsA, 1), size(ptsB, 1));
+
+        % Find the intersecting point/s coordinate, and their row ids
+        [comPts, idsA, idsB] = intersect(ptsA, ptsB, 'rows');
+
+        % Loop through common points
+        for j = 1:size(comPts, 1)
+
+            % -------------------------------------------------------------------------------
+            %   Schematic of an intersection of rod A and B
+            % -------------------------------------------------------------------------------
+            %                     Rod B
+            %                     |
+            %                     o
+            %                   | | q+1
+            %         Linker 1  ^ ^
+            %             --->--| |p,q      p+1 
+            % Rod A --- o --->--- o --->--- o -----
+            %          p-1        | |-->---   
+            %                     ^ ^  Linker 2
+            %                     | |
+            %                q-1  o
+            %                     |
+            %
+            % -------------------------------------------------------------------------------
+            %   Rod A nodes are p-1, p and p+1, Rod B nodes are q-1, q and q+1
+            %   The insersection is at (p,q) node. Linker 1 and 2 are placed to join A and B
+            % -------------------------------------------------------------------------------
+            %
+            %
+            %   Table: Node pairing                     %   Table: Edge pairing
+            % -----------------------------------       % --------------------------
+            %   Linker nodes   1      2       3         %   Linker edge   1      2    
+            % -----------------------------------       % --------------------------
+            %   Linker 1      p-1   p or q   q+1        %   Linker 1      p-1   q
+            %   Linker 2      q-1   p or q   p+1        %   Linker 2      q-1   p
+            % -----------------------------------       % --------------------------
+            %
+            % -------------------------------------------------------------------------------
+
+            % Indices of the intersection point (p-th point in A, q-th point in B)
+            [p, q] = deal(idsA(j), idsB(j));
+
+            % Generate the connection matrix and linker rods
+
+            if (p > 1) && (q < nptsB) % Check if (p-1)th point in A and (q+1)th point in B exist
+
+                % Determine linker tag
+                linkTag = nrods + countLink;
+
+                % connStruct(R, r, M, m, N, n, E, e, p)
+                e1 = connStruct(rodATag, linkTag, p-1, 1,   p, 2, p-1, 1, linkspec(i).penalty);
+                e2 = connStruct(rodBTag, linkTag,   q, 2, q+1, 3,   q, 2, linkspec(i).penalty);
+                
+                % Insert the edge pair into connection matrix
+                connection(countLink, 1) = e1; connection(countLink, 2) = e2;
+
+                % Get linker rod points
+                points = [ptsA(p-1,:); ptsA(p,:); ptsB(q+1,:)];
+
+                % Generate the linker rod and insert into linkers matrix
+                linkers(countLink) = InitializeRod(points, linkspec(i).section, linkspec(i).material); fprintf("%d ", linkTag);
+                
+                % Update linker counter
+                countLink = countLink + 1;
+
+            end
+
+            if (q > 1) && (p < nptsA) % Check if (q-1)th point in B and (p+1)th point in A exist
+                
+                % Determine linker tag
+                linkTag = nrods + countLink;
+
+                % connStruct(R, r, M, m, N, n, E, e, p)
+                e1 = connStruct(rodBTag, linkTag, q-1, 1,   q, 2, q-1, 1, linkspec(i).penalty);
+                e2 = connStruct(rodATag, linkTag,   p, 2, p+1, 3,   p, 2, linkspec(i).penalty);
+                
+                % Insert the edge pair into connection matrix
+                connection(countLink, 1) = e1; connection(countLink, 2) = e2;
+
+                % Get linker rod points
+                points = [ptsB(q-1,:); ptsB(q,:); ptsA(p+1,:)];
+
+                % Generate the linker rod and insert into linkers matrix
+                linkers(countLink) = InitializeRod(points, linkspec(i).section, linkspec(i).material); fprintf("%d ", linkTag);
+
+                % Update linker counter
+                countLink = countLink + 1;
+
+            end
+
+        end
+
+        fprintf("\n");
+        
     end
-
-    %disp("Linkers created between:"); pairs(hasLinker, :)
-    %disp("Linkers NOT created between:"); pairs(~hasLinker, :)
 
 end
 
-function str = connStruct()
+function checkDuplicatePairs(pairs)
 
-    % Returns the struct that stores information of which regular rod is connected to which linker,
-    % regular rod node to linker node connectivity and rod edge to linker edge connectivity
+    % Sort each row so that [A B] and [B A] become identical
+    sorted = sort(pairs, 2);
 
-    str = struct(... 
-        'R', [], ... % Tag of regular rod R
-        'M', [], ... % First connected node from R
-        'N', [], ... % Second connected node from R
-        'E', [], ... % Connected edge from R
-        ...
-        'r', [], ... % Tag of linker rod r
-        'm', [], ... % First connected node from r (paired with M)
-        'n', [], ... % Second connected node from r (paired with N)
-        'e', [], ... % Connected edge from r (paired with E)
-        ...
-        'p', [], ... % Penalty
-        's', []  ... % Sign for edge coupling, +1 if their positive torsions are in same direction, -1 otherwise
-        );
+    % Find unique rows
+    [uniquePairs, ~, ids] = unique(sorted, 'rows');
 
-    % Schematic for one edge pair
-    % --------------------------------
+    % Check if any pair appears more than once
+    dupCount = accumarray(ids, 1);
+
+    % Find the duplicate pair id
+    duplicateIds = find(dupCount > 1);
+
+    if ~isempty(duplicateIds); error('Duplicate pair found: %s', mat2str(uniquePairs(duplicateIds, :))); end
+end
+
+function str = connStruct(R, r, M, m, N, n, E, e, p)
+
+    % Returns a struct that stores information about an edge pair (a regular edge and a linker edge)
+
+    % Schematic for an edge pair
+    % --------------------------------------
     %
-    %  R:  O ============= O
+    %  R:  O ============= O    Regular rod
     %      M       E       N
     %
-    %  r:  O ============= O
+    %  r:  O ============= O    Linker rod
     %      m       e       n
     %
-    % --------------------------------
+    % --------------------------------------
 
-end
+    s = torsionalCouplingSign(M, N, m, n);
 
-function [node, edge] = getOtherNodeAndEdge(nodeQ, rod_n)
-    % Returns the other connected node and the connected edge
-
-    % nodeQ = the common node between the main rod and the linker (should be either 1 or N)
-    % rod_n = number of nodes in the rod (the usual N)
-    
-    % If nodeQ is the first node of rod
-    if nodeQ == 1
-
-        node = 2; % Then node 2 is the other connected node
-        edge = 1; % First edge is the connected edge
-        
-    % If nodeQA is the last node of rod
-    elseif nodeQ == rod_n
-
-        node = rod_n-1; % The node before the last node is the other connected node
-        edge = rod_n-1; % Last edge is the connected edge
-
-    end
+    str = struct(... 
+        'R', R, ... % Tag of regular rod R
+        'r', r, ... % Tag of linker rod r
+        'M', M, ... % First connected node from R
+        'm', m, ... % First connected node from r (paired with M)
+        'N', N, ... % Second connected node from R
+        'n', n, ... % Second connected node from r (paired with N)
+        'E', E, ... % Connected edge from R
+        'e', e, ... % Connected edge from r (paired with E)
+        's', s, ... % Sign for edge coupling, +1 if their positive torsions are in same direction, -1 otherwise
+        'p', p  ... % Penalty
+        );
 
 end
 

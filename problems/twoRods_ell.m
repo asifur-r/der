@@ -18,7 +18,8 @@ axisY = [0 1 0];
 % --------------------------------------------------
 
 % Load (N or Nmm)
-M = 2000.0; % Torsional moment
+P = 40; % 
+M = 1.0; % Torsional moment
 
 % --------------------------------------------------    
 % SECTION PROPERTIES
@@ -42,13 +43,13 @@ mat = Material(2.2e3, 0.38, 1.2e-6);
 L = 100; % mm
 
 % Number of vertices
-N = 51;
+N = 21;
 
 % Stiff part length
 sb = 1.0;
 
 % Generate base rods along X-axis
-alongX = straightLine(L, N, sb, sb);
+alongX = Profile.Straight(L, N, sb, sb);
 
 rods(1) = InitializeRod(alongX, sec, mat);
 % rods(2) = InitializeRod(Geometry.TranslateByVector(Geometry.RotateByAngle(alongX, axisZ, pi/2), [L 0 0]), sec, mat);
@@ -62,7 +63,7 @@ rods(2) = InitializeRod(Geometry.TranslateByVector(Geometry.RotateByAngle(alongX
 % RESTRAINT ASSIGNMENT
 % --------------------------------------------------
 
-TS = [Series('constant', 1), Series('linear', M/50, 0, 10)];
+TS = [Series('constant', 1), Series('linear', M, 0, 10)];
 
 % Assign restraints
 rods(1) = Restraint(rods(1), 1:2, 1:3, 1); rods(1) = Restraint(rods(1), 1, 4, 1);
@@ -73,10 +74,8 @@ rods(2) = Restraint(rods(2), N-1:N, 1:3, 1); rods(2) = Restraint(rods(2), N-1, 4
 % --------------------------------------------------
 
 % Assign loads
-% rods(1) = PointLoad(rods(1), 10, 4, M, 2); % Torsion in rod 1
-% rods(2) = PointLoad(rods(2), 10, 4, M, 2); % Torsion in rod 2
-% rods(1) = PointLoad(rods(1), N, 3, 2); % Tip load in rod 1
-rods(1) = Displacement(rods(1), N, 3, 2); % Tip displacement in rod 1
+rods(1) = PointLoad(rods(1), N, 3, 2); % Tip load in rod 1
+% rods(1) = Displacement(rods(1), N-1, 4, 2); % Torsional moment in rod 1
 
 % Record load values to file
 %loadFile = strcat('out/square_plus_mtheta_h=', num2str(Hs),'_load'); recordLoad(loadFile, rods);
@@ -89,20 +88,20 @@ rods(1) = Displacement(rods(1), N, 3, 2); % Tip displacement in rod 1
 for r=1:length(rods); rods(r).points = round(rods(r).points, 6); end
 
 % Find rod pairs for joints
-pairs = rodPairsNew(rods);
+pairs = RodPairsNew(rods);
 
 % Define linker
-penalty = 1e5; EMod = 1.0; mat.E = EMod*mat.E; link = linker(pairs, sec, mat, penalty);
+penalty = 1e5; EMod = 1.0; mat.E = EMod*mat.E; link = Linker(pairs, sec, mat, penalty);
 
 % --------------------------------------------------
 % MONITORING SETUP
 % --------------------------------------------------
 
 % Inspection variables(rod, node, dof)
-liveDofs = [1 N 3];
+liveDofs = [1 N-1 4];
 
 % Visual
-vis = Visual('dofs', liveDofs, 'deformed', true);
+vis = Visual('dofs', liveDofs, 'deformed', true);%, 'triad', true);
 
 % Monitor
 mon = []; %Monitor('iter', perIter, 'step', perStep);
@@ -114,13 +113,9 @@ rec = [];%Record('forcefile', 'force.txt', 'forcedofs', liveDisp);
 % ANALYSIS
 % --------------------------------------------------
 
-% --------------------------------------------------
-% ANALYSIS
-% --------------------------------------------------
-
 % Analysis object
 %ana = Analysis('static', 2, 1);
-ana = Analysis('dynamic', 2, 1);
+ana = Analysis('dynamic', 3, 1);
 
 % Integration
 ana = ana.Integration('euler');
@@ -131,6 +126,7 @@ ana = ana.Solver('nr');
 % ana = ana.Solver('mgdm');
 
 % Convergence
+% Convergence(tolerance, maxiter)
 ana = ana.Convergence(1e-4, 100);
 
 % Constraint

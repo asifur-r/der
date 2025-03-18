@@ -1,7 +1,7 @@
 function solution = DER(rods, linkspec, ana, visual, monitor, rec)
     
 % Generate linker rods
-[linkers, conn] = linkerRodsNew(rods, linkspec);
+[linkers, conn] = linkerRods(rods, linkspec);
 
 % Contains both regular and linker ders
 Rods = [rods, linkers];
@@ -12,10 +12,10 @@ nrods = length(rods);
 % Initialize solver stuct
 sol = solver(Rods);
 
-while sol.t <= ana.tf
+while sol.t < ana.tf
 
     % Update time step
-    sol.t = sol.t + ana.dt; fprintf("STEP: %.2f ------------ \n", sol.t)
+    sol.t = sol.t + ana.dt; fprintf("Time: %.2f ------------ \n", sol.t)
     
     % Update time dependant properties
     [Rods, sol] = assignTimeDependants(Rods, ana, sol, nrods);
@@ -89,7 +89,7 @@ while sol.t <= ana.tf
     if ~isempty(visual); livePlot(Rods, sol, visual); end
 
     % Write in recorder
-    if ~isempty(rec); recorder(rec, Rods, sol.t, sol); end
+    if ~isempty(rec); recorder(rec, Rods, ana, sol); end
 
     % Print monitor variables for each step
     if ~isempty(monitor) & ~isempty(monitor.step); eval(monitor.step); end

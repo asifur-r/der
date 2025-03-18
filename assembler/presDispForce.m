@@ -11,6 +11,7 @@ function Fpd = presDispForce(sys, sol, Kt)
 
     else % Return a zero vector
 
+        % Fpd = zeros(sys.nfrdof, 1);
         Fpd = sparse(zeros(sys.nfrdof, 1));
 
     end

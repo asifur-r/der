@@ -1,7 +1,10 @@
 function kapb = curvatureVectors(t)
+    % Returns the list of curvature vector kapb from a list of tangent vectors t
 
-    % Element size
+    % Number of elements
     nele = size(t, 1);
+
+    % Number of ndoes
     n = nele + 1;
 
     % Curvature vector (size: n x 3)

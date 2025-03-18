@@ -1,4 +1,4 @@
-function str = linker(pairs, sec, mat, penalty)
+function str = Linker(pairs, sec, mat, penalty)
     % Returns stuct containing linker pair information
     % For now it assigns the same section, material, penalty to all the linkers
 
