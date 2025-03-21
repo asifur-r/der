@@ -1,11 +1,10 @@
 ToDo:
 Make code object oriented
 Implement model check: no load/disp in constrained dofs
-Consider preconditioning before solving
 
 Issues:
-Force readings needs to account for damping, Fi or Fe to get force output?
-Need to update recorder for correct force readings
+Does rayleigh matrix C = aM + bK should be computed without any penalty terms in K?
+Need to check if damping is added correctly in J and R
 
 
 Note:

@@ -4,14 +4,14 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     fr = sys.frdof; Fext = sol.Fext;
     
     % Get system level internal force and stiffness (only stacks F and K for multi rods)
-    [Fi, Kt] = stackForceStiffness(Rods);
+    [Fi, Kt] = stackForceStiffness(Rods); KNP = Kt(fr,fr); % KNP = K with no penalty terms, used for computing damping matrix C
     
     % Add linker penalty force and stiffness
     if ~isempty(conn); [Fl, Kl] = linkerPenaltySPARSE(Rods, conn, sys); Fi = Fi + Fl; Kt = Kt + Kl; end
     
     % Add equal dof penalty force and stiffness
     if ~isempty(ana.equalDof); [Feq, Keq] = equalDofPenaltySPARSE(ana, sol, sys); Fi = Fi + Feq; Kt = Kt + Keq; end
-
+    
     % Store full sized Fi for livplot and recorder
     sol.FINT = Fi;
 
@@ -33,8 +33,8 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     % Jacobian
     J = Kt + Kcp;
     
-    % Add dynamic terms to J and R if necessary
-    [J, R, Fe] = applyDynamicTerms(J, R, Kt, Fe, ana, sol, sys);
+    % Add dynamic terms to J, R and Fe if necessary
+    if strcmp(ana.type, 'dynamic'); [J, R, Fe] = applyDynamicTerms(J, R, KNP, Fe, ana, sol, sys); end
 
     % Insert in solver object
     sol.J = sparse(J); sol.R = sparse(R); sol.Fe = Fe;
@@ -74,43 +74,38 @@ end
 
 function [J, R, Fe] = applyDynamicTerms(J, R, Kt, Fe, ana, sol, sys)
 
-    fr = sys.frdof; nfr = sys.nfrdof; dt = ana.dt; betaN = ana.betaN;
+    fr = sys.frdof; dt = ana.dt; betaN = ana.betaN;
 
-    if strcmp(ana.type, 'dynamic')
+    % Mass matrix
+    M = massMatrixSPARSE(sol.Mdiag); M = M(fr, fr);
 
-        % Mass matrix
-        M = massMatrixSPARSE(sol.Mdiag); M = M(fr, fr);
+    % Add mass terms
+    if strcmp(ana.integration, 'euler')
+        
+        J = J * dt^2 + M;
+        R = R * dt^2 - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * dt;
+    
+    elseif strcmp(ana.integration, 'newmark')
+        
+        J = J * dt^2 * betaN^2 + M;
+        R = R * dt^2 * betaN^2 + (sol.Fep(fr) - sol.Fip(fr)) * dt^2 * betaN * (1 - betaN) - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * dt;
+        
+    end
+
+    % Add damping terms
+    if ~isempty(ana.damping) 
+        
+        % Compute rayleigh damping
+        C = rayleighDamping(M, Kt, ana.alpha, ana.beta);
 
         % Damping force
-        if ~isempty(ana.damping) 
-            
-            % Should C be computed using Kt or J (=Kt+Kcp)?
-            % C = rayleighDamping(M, Kt, ana.alpha, ana.beta);
-            C = rayleighDamping(M, J, ana.alpha, ana.beta);
-            Fd = C * sol.vp(fr);
+        Fd = C * sol.vp(fr) * dt;
 
-            % Add damping to the external force vector
-            Fe = Fe + Fd * dt;
-
-        else
-            % No damping
-            % C = zeros(nfr); %Fd = 0;
-            C = sparse(nfr);
-        end
-
-        % Update Jacobian and residual
-        if strcmp(ana.integration, 'euler')
-			
-            J = J * dt^2 + M + C * dt;
-            R = R * dt^2 - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * dt;
-        
-        elseif strcmp(ana.integration, 'newmark')
-            
-            J = J * dt^2 * betaN^2 + M + C * dt;    
-            R = R * dt^2 * betaN^2 + (sol.Fep(fr) - sol.Fip(fr)) * dt^2 * betaN * (1 - betaN) - M * (sol.u(fr) - sol.up(fr)) + M * sol.vp(fr) * dt;
-            
-        end   
+        % Add damping terms to J, R and Fe
+        J = J + C * dt;
+        R = R + Fd * dt; % Check if its good
+        Fe = Fe + Fd;
 
     end
-    
+
 end

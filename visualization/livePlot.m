@@ -16,10 +16,10 @@ function livePlot(Rods, sol, visual)
     % Counter of the number of plots so far
     % Used to select the correct subplot
     ctr = 0;
-
+ 
     % Plots the deformed shape of the system
     if visual.deformed == true
-
+ 
         % Select subplot
         subplot(1, nplot, [1 2])
 

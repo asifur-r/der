@@ -14,12 +14,12 @@ axisZ = [0 0 1];
 axisY = [0 1 0];
 
 % --------------------------------------------------
-% LOAD
+% LOAD / DISP
 % --------------------------------------------------
 
 % Load (N or Nmm)
 P = 40; % 
-M = 1.0; % Torsional moment
+D = 50.0; 
 
 % --------------------------------------------------    
 % SECTION PROPERTIES
@@ -43,7 +43,7 @@ mat = Material(2.2e3, 0.38, 1.2e-6);
 L = 100; % mm
 
 % Number of vertices
-N = 21;
+N = 201;
 
 % Stiff part length
 sb = 1.0;
@@ -57,13 +57,12 @@ rods(2) = InitializeRod(Geometry.TranslateByVector(Geometry.RotateByAngle(alongX
 
 % Optional: Check geometry by plotting
 % for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
-% return
 
 % --------------------------------------------------
 % RESTRAINT ASSIGNMENT
 % --------------------------------------------------
 
-TS = [Series('constant', 1), Series('linear', M, 0, 10)];
+TS = [Series('constant', 1), Series('linear', D, 0, 10)];
 
 % Assign restraints
 rods(1) = Restraint(rods(1), 1:2, 1:3, 1); rods(1) = Restraint(rods(1), 1, 4, 1);
@@ -74,11 +73,8 @@ rods(2) = Restraint(rods(2), N-1:N, 1:3, 1); rods(2) = Restraint(rods(2), N-1, 4
 % --------------------------------------------------
 
 % Assign loads
-rods(1) = PointLoad(rods(1), N, 3, 2); % Tip load in rod 1
-% rods(1) = Displacement(rods(1), N-1, 4, 2); % Torsional moment in rod 1
-
-% Record load values to file
-%loadFile = strcat('out/square_plus_mtheta_h=', num2str(Hs),'_load'); recordLoad(loadFile, rods);
+% rods(1) = PointLoad(rods(1), N, 3, 2); % Tip load in rod 1
+rods(1) = Displacement(rods(1), N, 3, 2);
 
 % --------------------------------------------------
 % ROD PAIRS AND LINKER SPECS
@@ -88,7 +84,7 @@ rods(1) = PointLoad(rods(1), N, 3, 2); % Tip load in rod 1
 for r=1:length(rods); rods(r).points = round(rods(r).points, 6); end
 
 % Find rod pairs for joints
-pairs = RodPairsNew(rods);
+pairs = RodPairs(rods);
 
 % Define linker
 penalty = 1e5; EMod = 1.0; mat.E = EMod*mat.E; link = Linker(pairs, sec, mat, penalty);
@@ -98,10 +94,10 @@ penalty = 1e5; EMod = 1.0; mat.E = EMod*mat.E; link = Linker(pairs, sec, mat, pe
 % --------------------------------------------------
 
 % Inspection variables(rod, node, dof)
-liveDofs = [1 N-1 4];
+liveDofs = [1 N 3];
 
 % Visual
-vis = Visual('dofs', liveDofs, 'deformed', true);%, 'triad', true);
+vis = [];%Visual('dofs', liveDofs, 'deformed', true);%, 'triad', true);
 
 % Monitor
 mon = []; %Monitor('iter', perIter, 'step', perStep);
@@ -114,31 +110,16 @@ rec = [];%Record('forcefile', 'force.txt', 'forcedofs', liveDisp);
 % --------------------------------------------------
 
 % Analysis object
-%ana = Analysis('static', 2, 1);
-ana = Analysis('dynamic', 3, 1);
-
-% Integration
+ana = Analysis('static', 10, 1);
+% ana = Analysis('dynamic', 10, 1);
 ana = ana.Integration('euler');
 % ana = ana.Integration('newmark', 0.5);
-
-% Solver
 ana = ana.Solver('nr');
-% ana = ana.Solver('mgdm');
-
-% Convergence
-% Convergence(tolerance, maxiter)
 ana = ana.Convergence(1e-4, 100);
-
-% Constraint
 ana = ana.Constraint('elimination');
 % ana = ana.Constraint('penalty', 1e8);
-
-% Damping
-ana = ana.Damping('rayleigh', 0.01, 0.001);
-
-% Time series
+% ana = ana.Damping('rayleigh', 0.01, 0.001);
 ana = ana.TimeSeries(TS);
-% ana = ana.TimeSeries([Series('constant', 1), Series('triangular', 1, 4, 8, 12)]);
 
 % Call driver
 tic; S = DER(rods, link, ana, vis, mon, rec); toc

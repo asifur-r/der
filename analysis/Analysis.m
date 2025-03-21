@@ -1,7 +1,7 @@
 classdef Analysis
     % Defines class for analysis parameters
 
-    properties (SetAccess = private, GetAccess = public)
+    properties %(SetAccess = private, GetAccess = public)
         type        % Analysis type: 'static' or 'dynamic'
         % lam0        % Increment for NR, or first lambda for MGDM
         tf          % Final time t (for dynamic)
@@ -40,9 +40,6 @@ classdef Analysis
             obj.type = type;
             obj.tf = tf;
             obj.dt = dt;
-
-            % Initialize
-            equalDof = {};
 
         end
 
@@ -117,7 +114,7 @@ classdef Analysis
 
         end
 
-        function obj = EqualDof(obj, masterRod, masterNode, slaveRod, slaveNode, dofs, penalty)
+        function obj = EqualDof(obj, masterRod, masterNode, slaveRod, slaveNode, dofs, penalty, tsTag)
             
             newRow = [masterRod, masterNode, slaveRod, slaveNode];
             
@@ -139,11 +136,11 @@ classdef Analysis
                     obj.equalDof{matchIndex}.penalty = penalty;
                 else
                     % Append new struct and dofs
-                    obj.equalDof{end + 1} = struct('masterRod', masterRod, 'masterNode', masterNode, 'slaveRod', slaveRod, 'slaveNode', slaveNode, 'dofs', dofs, 'penalty', penalty);
+                    obj.equalDof{end + 1} = struct('masterRod', masterRod, 'masterNode', masterNode, 'slaveRod', slaveRod, 'slaveNode', slaveNode, 'dofs', dofs, 'penalty', penalty, 'timeSeriesTag', tsTag);
                 end
             else
                 % First entry
-                obj.equalDof{1} = struct('masterRod', masterRod, 'masterNode', masterNode, 'slaveRod', slaveRod, 'slaveNode', slaveNode, 'dofs', dofs, 'penalty', penalty);
+                obj.equalDof{1} = struct('masterRod', masterRod, 'masterNode', masterNode, 'slaveRod', slaveRod, 'slaveNode', slaveNode, 'dofs', dofs, 'penalty', penalty, 'timeSeriesTag', tsTag);
             end
             
 
@@ -152,6 +149,7 @@ classdef Analysis
         function Validate(obj)
             % Validate the analysis parameters
             assert(~isempty(obj.type), "Analysis type must be set.");
+            assert(~isempty(obj.integration), "Integration must be set.");
             assert(~isempty(obj.solver), "Solver type must be set.");
             assert(~isempty(obj.tf), "tf must be set.");
             assert(~isempty(obj.dt), "dt must be set.");
@@ -163,17 +161,12 @@ classdef Analysis
                 error("Penalty value is required for 'penalty' constraint.");
             end
 
-            if ~isempty(obj.damping) && strcmp(obj.damping, 'rayleigh') && (isempty(obj.alphaR) || isempty(obj.betaR))
+            if ~isempty(obj.damping) && strcmp(obj.damping, 'rayleigh') && (isempty(obj.alpha) || isempty(obj.beta))
                 error("alpha and beta are required for rayleigh damping.");
             end
 
-            if ~isempty(obj.damping) && strcmp(obj.damping, 'vertices') && isempty(obj.eta)
-                error("eta is required for vertices damping.");
-            end
-
-            assert(~isempty(obj.integration), "Integration type must be set.");
             if strcmp(obj.integration, 'newmark') && isempty(obj.betaN)
-                error("beta is required for newmark integration scheme.");
+                error("beta is required for newmark integration.");
             end
         end
     

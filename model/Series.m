@@ -1,6 +1,6 @@
 classdef Series
     properties
-        type    % 'constant', 'linear', 'rectangular', 'sawtooth', 'triangular', 'trapezoidal'
+        type    % 'constant', 'linear', 'rectangle', 'sawtooth', 'triangle', 'trapezoid'
         value   % Peak value
         params  % Structure to hold ta, tb, tc, td
     end
@@ -21,20 +21,20 @@ classdef Series
                     assert(numel(varargin) == 2, 'Linear time series requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
 
-                case 'rectangular'
-                    assert(numel(varargin) == 2, 'Rectangular time series requires ta and tb.');
+                case 'rectangle'
+                    assert(numel(varargin) == 2, 'Rectangle time series requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
 
                 case 'sawtooth'
                     assert(numel(varargin) == 2, 'Sawtooth time series requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
                 
-                case 'triangular'
-                    assert(numel(varargin) == 3, 'Triangular time series requires ta, tb, and tc.');
+                case 'triangle'
+                    assert(numel(varargin) == 3, 'Triangle time series requires ta, tb, and tc.');
                     [obj.params.ta, obj.params.tb, obj.params.tc] = deal(varargin{:});
 
-                case 'trapezoidal'
-                    assert(numel(varargin) == 4, 'Trapezoidal time series requires ta, tb, tc, and td.');
+                case 'trapezoid'
+                    assert(numel(varargin) == 4, 'Trapezoid time series requires ta, tb, tc, and td.');
                     [obj.params.ta, obj.params.tb, obj.params.tc, obj.params.td] = deal(varargin{:});
 
                 otherwise
@@ -51,14 +51,14 @@ classdef Series
                     value = obj.constant(t);
                 case 'linear'
                     value = obj.linear(t);
-                case 'rectangular'
-                    value = obj.rectangular(t);
+                case 'rectangle'
+                    value = obj.Rectangle(t);
                 case 'sawtooth'
                     value = obj.sawtooth(t);
-                case 'triangular'
-                    value = obj.triangular(t);
-                case 'trapezoidal'
-                    value = obj.trapezoidal(t);
+                case 'triangle'
+                    value = obj.triangle(t);
+                case 'trapezoid'
+                    value = obj.trapezoid(t);
                 otherwise
                     error('Invalid time series type.');
             end
@@ -81,7 +81,7 @@ classdef Series
             end
         end
 
-        function value = rectangular(obj, t)
+        function value = Rectangle(obj, t)
             ta = obj.params.ta;  
             tb = obj.params.tb;
             value = (t >= ta && t < tb);
@@ -99,7 +99,7 @@ classdef Series
             end
         end
 
-        function value = triangular(obj, t)
+        function value = triangle(obj, t)
             ta = obj.params.ta;
             tb = obj.params.tb;
             tc = obj.params.tc;
@@ -114,7 +114,7 @@ classdef Series
             end
         end
 
-        function value = trapezoidal(obj, t)
+        function value = trapezoid(obj, t)
             ta = obj.params.ta;
             tb = obj.params.tb;
             tc = obj.params.tc;

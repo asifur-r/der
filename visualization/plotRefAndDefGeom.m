@@ -9,7 +9,7 @@ function plotRefAndDefGeom(qi, qf, r)
     markersize = 30;
 
     if size(pti, 1) ~= 3 % Assumes as Regular rod
-
+        
         x = [pti(:,1)]; y = [pti(:,2)]; z = [pti(:,3)];
         % plot3(x, y, z, '-ok', 'MarkerSize', markersize);
         scatter3(x, y, z, markersize, 'k')
@@ -29,7 +29,7 @@ function plotRefAndDefGeom(qi, qf, r)
     end
 
     axis equal
-    %view([90 0])
+    view([0 0]) % XZ view
 
     % plotRodTags(qi, r);
     % plotNodeTags(qi);

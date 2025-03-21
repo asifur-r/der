@@ -43,7 +43,7 @@ D = 50;
 
 % Time series array
 % TS = [Series('constant', 1), Series('linear', P, 2, 5) Series('triangular', D, 0, 5, 10)];
-TS = [Series('rectangular', 1, 0, 5), Series('rectangular', 1, 5, 21), Series('triangular', P, 0, 5, 5.01)];
+TS = [Series('rectangle', 1, 0, 5), Series('rectangle', 1, 5, 21), Series('triangular', P, 0, 5, 5.01)];
 
 % Assign restraints
 % rods(id) = Restraint(rods(id), node, dof, tstag);

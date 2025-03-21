@@ -6,12 +6,14 @@ function rod = assignLoadResDisp(parameter, rod, nodesList, dofsList, tagsList)
     % nodesList = list of nodesList
     % dofsList = list of dofsList
     % valsList = list of valsList (must be a scalar or a vector of length nodesList x dofsList)
+    % tagsList = timeseries tag  list
 
     % Create all the pairs of nodesList and dofsList
     [A, B] = meshgrid(nodesList, dofsList); pairs = [A(:), B(:)];
 
     % Check if valsList has correct length
     npairs = size(pairs, 1); ntags = length(tagsList); %nvals = length(valsList); 
+    
     % assert(nvals == 1 || nvals == npairs, "Incorrect length of %s values, must be 1 or %d", parameter, npairs);
     assert(ntags == 1 || ntags == npairs, "Incorrect length of %s values, must be 1 or %d", parameter, npairs);
     % assert(ntags == 1 || ntags == nvals, "Time series tags length must be 1 or %d", ntags);

@@ -1,5 +1,8 @@
 function solution = DER(rods, linkspec, ana, visual, monitor, rec)
-    
+
+% Validate analysis object
+ana.Validate();
+
 % Generate linker rods
 [linkers, conn] = linkerRods(rods, linkspec);
 
@@ -94,8 +97,6 @@ while sol.t < ana.tf
     % Print monitor variables for each step
     if ~isempty(monitor) & ~isempty(monitor.step); eval(monitor.step); end
  
-    % pause(2)
-
 end
 
 % Plot final results
