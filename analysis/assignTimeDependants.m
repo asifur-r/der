@@ -7,15 +7,13 @@ function [Rods, sol] = assignTimeDependants(Rods, ana, sol, nrods)
     % Time
     t = sol.t;
     
-    % Only need for actual rods number (nrods)
-    for i = 1:nrods
-        Rods(i).fext   = arrayfun(@(i) timeSeries(i).getValue(t), Rods(i).fextTag);
-        Rods(i).res    = arrayfun(@(i) timeSeries(i).getValue(t), Rods(i).resTag);
-        Rods(i).prdisp = arrayfun(@(i) timeSeries(i).getValue(t), Rods(i).prdispTag);
-    end
-    
-    sol.Fext   = vertcat(Rods.fext);
-    sol.Res    = vertcat(Rods.res);
-    sol.Prdisp = vertcat(Rods.prdisp);
+    % Only need for the actual rods number (nrods)
+    Res     = arrayfun(@(r) arrayfun(@(i, j) timeSeries(i).getValue(t) * j, Rods(r).resTag,     Rods(r).res),    1:nrods, 'UniformOutput', false);
+    Fext    = arrayfun(@(r) arrayfun(@(i, j) timeSeries(i).getValue(t) * j, Rods(r).fextTag,    Rods(r).fext),   1:nrods, 'UniformOutput', false);
+    Prdisp  = arrayfun(@(r) arrayfun(@(i, j) timeSeries(i).getValue(t) * j, Rods(r).prdispTag,  Rods(r).prdisp), 1:nrods, 'UniformOutput', false);
+
+    sol.Res    = vertcat(Res{:});
+    sol.Fext   = vertcat(Fext{:});
+    sol.Prdisp = vertcat(Prdisp{:});
 
 end

@@ -22,18 +22,20 @@ classdef systemProperties
 
     methods
 
-        function obj = systemProperties(Rods, ana) % Constructor
+        function obj = systemProperties(Rods, ana, sol) % Constructor
 
+            % Time independant properties
             obj.nRods = length(Rods);
-
             [obj.dof, obj.ndof] = sysDofs(Rods);
             obj.ndofpr = ndofsPerRod(Rods);
-
-            [obj.resdof, obj.nresdof] = resDofs(Rods);
-            [obj.prddof, obj.nprddof] = presDispDofs(Rods);
-            [obj.frdof, obj.nfrdof] = freeSysDofs(Rods, ana);
+            
+            % Time dependant properties
+            [obj.resdof, obj.nresdof] = resDofs(sol.Res);
+            [obj.prddof, obj.nprddof] = presDispDofs(sol.Prdisp);
+            [obj.frdof, obj.nfrdof] = freeSysDofs(sol.Res, sol.Prdisp, ana);
 
         end
         
     end
 end
+

@@ -1,11 +1,14 @@
-function [vec, val] = freeSysDofs(Rods, ana)
+function [vec, val] = freeSysDofs(Res, Prdisp, ana)
     % Returns number of system dofs for multi rod and its length
     
     % System dofs
-    [sysdofs, nsysdofs] = sysDofs(Rods);
+    [ndofs, dofs] = deal(length(Res), 1:length(Res));
+    
+    % System dofs
+    % [dofs, ndofs] = sysDofs(Rods);
 
     % For penalty approach, all dofs are free
-    if strcmp(ana.constraint, 'penalty'); vec = sysdofs; val = nsysdofs; return; end
+    if strcmp(ana.constraint, 'penalty'); vec = dofs; val = ndofs; return; end
 
     % For elimination approach, the number is found by 
     % subtracting the restrained dofs and prescribed dofs from the total
@@ -13,20 +16,19 @@ function [vec, val] = freeSysDofs(Rods, ana)
     if strcmp(ana.constraint, 'elimination')
 
         % Restrained dofs
-        [resdofs, nresdofs] = resDofs(Rods);
+        [resdofs, nresdofs] = resDofs(Res);
 
         % Prescribed dofs
-        [prddofs, nprddofs] = presDispDofs(Rods);
+        [prddofs, nprddofs] = presDispDofs(Prdisp);
 
         % Number of free dofs
-        nfreedofs = nsysdofs - nresdofs - nprddofs;
+        nfreedofs = ndofs - nresdofs - nprddofs;
 
         % Free dofs ids by set difference setdiff(setdiff(A,B),C) = A-B-C
-        freedofs = setdiff(setdiff(sysdofs, resdofs), prddofs);
+        freedofs = setdiff(setdiff(dofs, resdofs), prddofs);
 
         % Return
         val = nfreedofs;
-        % vec = freedofs;
         vec = freedofs;
         
     end

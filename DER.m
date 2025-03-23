@@ -24,7 +24,7 @@ while sol.t < ana.tf
     [Rods, sol] = assignTimeDependants(Rods, ana, sol, nrods);
 
     % Initialize properties
-    sys = systemProperties(Rods, ana);
+    sys = systemProperties(Rods, ana, sol);
 
     % Initialize displacement vector for iteration
     sol.u = sol.up;
@@ -33,7 +33,7 @@ while sol.t < ana.tf
     while sol.i <= ana.maxiter
 
         % Compute jacobian and residual
-        sol = jacobianResidual(Rods, conn, ana, sys, sol);
+        sol = jacobianResidual(Rods, conn, ana, sys, sol);%, Kt);
         
         % Solve for current iteration
         [sol.du, sol.dl, sol.err] = solveIteration(ana, sys, sol);

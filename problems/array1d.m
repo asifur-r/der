@@ -14,10 +14,11 @@ derPath = '../'; addpath(genpath(derPath))
 % ==================================================
 
 %sec = Section(width, height);
-sec = Section(5, 0.5001);
+sec = Section(5, 0.50001);
 
 %mat = Material(E, nu, rho);
 mat = Material(2.2e3, 0.38, 1.2e-6);
+
 % ==================================================
 % RODS GENERATION
 % ==================================================
@@ -32,7 +33,7 @@ H = 20; % mm
 N = 35;
 
 % Number of units
-Nunits = 5;
+Nunits = 3;
 
 % Flat lengths
 a = 1; b = 9; c = 1.0;
@@ -49,7 +50,7 @@ sec.w = 2 * sec.w; % Double base width
 rods(2) = InitializeRod(basePoints, sec, mat);
 
 % Optional: Check geometry by plotting
-for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
+% for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
 
 % ==================================================
 % TIME PARAMETERS
@@ -58,23 +59,23 @@ for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
 % Time increment (s)
 dt = 0.5;
 
-% Prescribed displacement (mm)
-D = - H * 2.1;
+% Time assigned for each prescribed displacement
+dtDisp = 10;
 
-dtD = 10; % Time given for each displacement application
-dtS = 5;  % Time given after each support release
+% Time assigned after each support release
+dtSupp = 5;
 
 % Generate Time series array
 TS = [];
 
 % Insert the time serires for the prescribed displacements
-for i=1:Nunits; TS = [TS, Series('sawtooth', D, (i-1)*dtD, i*dtD)]; end
+for i=1:Nunits; TS = [TS, Series('sawtooth', 1, (i-1)*dtDisp, i*dtDisp)]; end
 
 % Time so far
-tdisp = i*dtD;
+tdisp = i*dtDisp;
 
 % Insert the time serires for the boundary conditions
-for i=1:Nunits; tend = tdisp + i*dtS; TS = [TS, Series('rectangle', 1, 0, tend)]; end
+for i=1:Nunits; tend = tdisp + i*dtSupp; TS = [TS, Series('rectangle', 1, 0, tend)]; end
 
 % Insert time series for equal dof release
 TS = [TS, Series('rectangle', 1, 0, tdisp+1)]; % 1s after all units are snapped
@@ -83,7 +84,7 @@ TS = [TS, Series('rectangle', 1, 0, tdisp+1)]; % 1s after all units are snapped
 TS = [TS, Series('constant', 1)];
 
 % Final time (s)
-tfinal = tend + dtS;
+tfinal = tend + dtSupp;
 
 % Visual check for the time series
 plotTimeSeries(TS, 0, tfinal, dt);
@@ -98,24 +99,27 @@ bnNodes = flip(archSeries.Joints());
 % Time independant boundaries
 
 % Fix the first edge of the first sinusoid
-rods(1) = Restraint(rods(1), 1:2, 1:3, length(TS)); % Blocks position of node 1 and 2
-rods(1) = Restraint(rods(1), 1, 4, length(TS)); % Blocks rotation of edge 1
+rods(1) = Restraint(rods(1), 1:2, 1:3, 1, length(TS)); % Blocks position of node 1 and 2
+rods(1) = Restraint(rods(1), 1, 4, 1, length(TS)); % Blocks rotation of edge 1
 
 % Fix Y (out of plane) of the remaining boundary nodes
-rods(1) = Restraint(rods(1), bnNodes(1:end-1), 2, length(TS));
+rods(1) = Restraint(rods(1), bnNodes(1:end-1), 2, 1, length(TS));
 
 % Time dependant boundaries
-for i=1:Nunits; rods(1) = Restraint(rods(1), bnNodes(i), [1 3], Nunits+i); end
+for i=1:Nunits; rods(1) = Restraint(rods(1), bnNodes(i), [1 3], 1, Nunits+i); end
     
 % ==================================================
 % LOAD ASSIGNMENT
 % ==================================================
 
+% Prescribed displacement (mm)
+D = - H * 2.2;
+
 % Get the arch peaks for prescribed displacements
 dispNodes = archSeries.Peaks();
 
 % Assign loads or prescribed displacements
-for i=1:Nunits; rods(1) = Displacement(rods(1), dispNodes(i), 3, i); end
+for i=1:Nunits; rods(1) = Displacement(rods(1), dispNodes(i), 3, D, i); end
 
 % ==================================================
 % ROD PAIRS AND LINKER SPECS
@@ -150,7 +154,7 @@ ana = Analysis('static', tfinal, dt);
 ana = ana.Integration('euler');
 % ana = ana.Integration('newmark', 0.75);
 ana = ana.Solver('nr');
-ana = ana.Convergence(1e-4, 200);
+ana = ana.Convergence(1e-5, 50);
 ana = ana.Constraint('elimination');
 % ana = ana.Constraint('penalty', 1e9);
 % ana = ana.Damping('rayleigh', 0.0001, 0.00001);
