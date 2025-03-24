@@ -12,12 +12,11 @@ function plotTimeSeries(timeSeriesArray, tstart, tfinal, dt, tnow)
     %   s2 = Series('triangle', 8, 2, 5, 8);
     %   plotSeries([s1, s2], 0, 10, 0.1);
 
-    % Time vector
-    t = tstart:dt:tfinal;
-    
     % Initialize figure
     %figure; 
    
+    trange = tstart:dt:tfinal;
+
     colors = lines(numel(timeSeriesArray)); % Generate distinct colors
     
     % Number of time series
@@ -29,8 +28,8 @@ function plotTimeSeries(timeSeriesArray, tstart, tfinal, dt, tnow)
     % Plot each series
     for i = 1:numSeries
         subplot(numSeries+1, 1, count)
-        y = arrayfun(@(ti) timeSeriesArray(i).getValue(ti), t); % Evaluate series at each time point
-        plot(t, y, 'Color', colors(i, :), 'LineWidth', 1.5, 'DisplayName', sprintf('Series %d', i));
+        y = timeSeriesArray(i).GetRangeValues(trange); % Evaluate series at each time point
+        plot(trange, y, 'Color', colors(i, :), 'LineWidth', 1.5, 'DisplayName', sprintf('Series %d', i));
         legend('show');
         grid on;
         count = count + 1;

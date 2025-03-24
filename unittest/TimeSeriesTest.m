@@ -23,15 +23,15 @@ FextTag = [1 2 2 3]';
 
 % Compute scaling factors (vectorized)
 % Inner arrayfun loops over the time vector, outer one loops over tags, then converts the cells to a matrix
-% forceFactors = cell2mat(arrayfun(@(ids) arrayfun(@(tcurr) TS(ids).getValue(tcurr), t), FextTag, 'UniformOutput', false));
-forceFactors = cell2mat(arrayfun(@(ids) TS(ids).getValue(tcurr), FextTag, 'UniformOutput', false));
+% forceFactors = cell2mat(arrayfun(@(ids) arrayfun(@(tcurr) TS(ids).GetValue(tcurr), t), FextTag, 'UniformOutput', false));
+forceFactors = cell2mat(arrayfun(@(ids) TS(ids).GetValue(tcurr), FextTag, 'UniformOutput', false));
 
 % Compute the scaled force (element-wise multiplication)
 Fext_scaled = (Fext .* forceFactors)';
 hold on
 arrayfun(@(i) plot(tcurr, Fext_scaled(:, i), 'o'), 1:length(Fext))
 
-forceFactors = cell2mat(arrayfun(@(ids) arrayfun(@(tcurr) TS(ids).getValue(tcurr), t), FextTag, 'UniformOutput', false));
+forceFactors = cell2mat(arrayfun(@(ids) arrayfun(@(tcurr) TS(ids).GetValue(tcurr), t), FextTag, 'UniformOutput', false));
 Fext_scaled = (Fext .* forceFactors)';
 
 % Plot

@@ -24,14 +24,14 @@ function R = InitializeRod(points, sec, mat)
     R.EIy] = rigidityVectors(R.nele, sec.h, sec.w, mat.E, mat.nu);
     
     % Restrain, force and prescribed displacement vector
-    R.res = zeros(R.ndof, 1);
-    R.fext = zeros(R.ndof, 1);
-    R.prdisp = zeros(R.ndof, 1);
+    R.res = sparse(R.ndof, 1);
+    R.fext = sparse(R.ndof, 1);
+    R.prdisp = sparse(R.ndof, 1);
 
     % Corresponding time series tags
-    R.resTag = ones(R.ndof, 1);
-    R.fextTag = ones(R.ndof, 1);
-    R.prdispTag = ones(R.ndof, 1);
+    R.resTag = sparse(R.ndof, 1);
+    R.fextTag = sparse(R.ndof, 1);
+    R.prdispTag = sparse(R.ndof, 1);
 
     % Kinematics
     [...

@@ -14,7 +14,7 @@ derPath = '../'; addpath(genpath(derPath))
 % ==================================================
 
 %sec = Section(width, height);
-sec = Section(5, 0.50001);
+sec = Section(5, 0.5);
 
 %mat = Material(E, nu, rho);
 mat = Material(2.2e3, 0.38, 1.2e-6);
@@ -87,7 +87,7 @@ TS = [TS, Series('constant', 1)];
 tfinal = tend + dtSupp;
 
 % Visual check for the time series
-plotTimeSeries(TS, 0, tfinal, dt);
+% plotTimeSeries(TS, 0, tfinal, dt); return
 
 % ==================================================
 % RESTRAINT ASSIGNMENT
@@ -120,7 +120,7 @@ dispNodes = archSeries.Peaks();
 
 % Assign loads or prescribed displacements
 for i=1:Nunits; rods(1) = Displacement(rods(1), dispNodes(i), 3, D, i); end
-
+% return
 % ==================================================
 % ROD PAIRS AND LINKER SPECS
 % ==================================================
@@ -136,7 +136,7 @@ liveDofs = [ones(Nunits,1) dispNodes' 3*ones(Nunits,1)];
 % liveDofs = [1 dispNodes(1) 3];
 
 % Visual
-vis = Visual('deformed', true);%, 'dofs', liveDofs);
+vis = [];%Visual('deformed', true);%, 'dofs', liveDofs);
 
 % Monitor
 mon = []; %Monitor('iter', perIter, 'step', perStep);

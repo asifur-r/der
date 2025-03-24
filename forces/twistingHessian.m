@@ -16,11 +16,12 @@ function mat3d = twistingHessian(t, enorm, kapb)
         chi = 1.0 + dot(te, tf);
         ttil = (te + tf) / chi;
         kapb_i = kapb(i, :);
+        skewt_te = [0 -te(3) te(2); te(3) 0 -te(1); -te(2) te(1) 0];
 
         % Compute each second derivatives (3x3 block)
         d2mdede = -0.25 / enorm_e^2 * ( kapb_i' * (te + ttil) + (te + ttil)' * kapb_i);
         d2mdfdf = -0.25 / enorm_f^2 * ( kapb_i' * (tf + ttil) + (tf + ttil)' * kapb_i);
-        d2mdedf =  0.50 / (enorm_e * enorm_f) * (2.0 / chi * skewt(te) - kapb_i' * ttil);
+        d2mdedf =  0.50 / (enorm_e * enorm_f) * (2.0 / chi * skewt_te - kapb_i' * ttil);
         d2mdfde = d2mdedf';
         
         % Place as 3x3 block

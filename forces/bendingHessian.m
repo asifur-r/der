@@ -36,7 +36,9 @@ function [mat3d1, mat3d2] = bendingHessian(t, enorm, kapb, kap1, kap2, m1, m2)
         m1t = (m1e + m1f) / chi;
         m2t = (m2e + m2f) / chi;
         ttT = tt' * tt;
-
+        skewt_m2t = [0 -m2t(3) m2t(2); m2t(3) 0 -m2t(1); -m2t(2) m2t(1) 0];
+        skewt_m1t = [0 -m1t(3) m1t(2); m1t(3) 0 -m1t(1); -m1t(2) m1t(1) 0];
+        
         % Double edge terms (e, f)
         
         % Kappa 1
@@ -46,7 +48,7 @@ function [mat3d1, mat3d2] = bendingHessian(t, enorm, kapb, kap1, kap2, m1, m2)
         C = (cross(te, m2t))' * tt; D = kb' * m2f;
         dk1dfdf = 1/en2f * (E + C + C') - k1 / (chi*en2f) * G + 1 / (4*en2f) * (D + D');
 
-        dk1dedf = -k1/(chi*ene*enf) * (I + te'*tf) + 1 / (ene*enf) * (E - A + C' - skewt(m2t));
+        dk1dedf = -k1/(chi*ene*enf) * (I + te'*tf) + 1 / (ene*enf) * (E - A + C' - skewt_m2t);
         dk1dfde = dk1dedf';
 
         % Kappa 2
@@ -56,7 +58,7 @@ function [mat3d1, mat3d2] = bendingHessian(t, enorm, kapb, kap1, kap2, m1, m2)
         C = (cross(te, m1t))' * tt; D = kb' * m1f;
         dk2dfdf = 1/en2f * (E - C - C') - k2 / (chi*en2f) * G - 1 / (4*en2f) * (D + D');
         
-        dk2dedf = -k2/(chi*ene*enf) * (I + te'*tf) + 1 / (ene*enf) * (E + A - C' + skewt(m1t));
+        dk2dedf = -k2/(chi*ene*enf) * (I + te'*tf) + 1 / (ene*enf) * (E + A - C' + skewt_m1t);
         dk2dfde = dk2dedf';
         
         % Double angle terms (ge, gf)

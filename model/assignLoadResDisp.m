@@ -28,15 +28,15 @@ function rod = assignLoadResDisp(parameter, rod, nodesList, dofsList, valsList, 
     switch parameter
         case 'fext'
             rod.fext(ids) = valsList; 
-            rod.fextTag(ids) = tagsList + 1;
+            rod.fextTag(ids) = tagsList;% + 1;
 
         case 'res' 
             rod.res(ids) = valsList; 
-            rod.resTag(ids) = tagsList + 1;
+            rod.resTag(ids) = tagsList;% + 1;
 
         case 'prdisp'
             rod.prdisp(ids) = valsList;
-            rod.prdispTag(ids) = tagsList + 1;
+            rod.prdispTag(ids) = tagsList;% + 1;
         
         otherwise; error("Assignment type must be either fext, res or pdisp")
     end
