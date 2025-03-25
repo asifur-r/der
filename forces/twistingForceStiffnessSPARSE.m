@@ -40,8 +40,27 @@ function [Ft, Kt] = twistingForceStiffnessSPARSE(t, enorm, kapb, m, mbar, ellbar
         kt = (GJ(i) / ellbar(i)) * ((m(i) - mbar(i)) * twistHess(:, :, i) + twistGrad(i, :)' * twistGrad(i, :));
         
         % Store stiffness matrix entries
-        [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p:q, p:q, kt);
+        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p:q, p:q, kt);
+
+        % Alternate technique without addSparseBlock
+
+        % Generate row and col
+        rows = p:q; cols = p:q;
+
+        % Generate indices using ndgrid
+        % [r, c] = ndgrid(rows, cols);
+
+        % Without using ndgrid
+        r = rows(:) .* ones(1, length(cols));
+        c = ones(length(rows), 1) .* cols(:)';
         
+        % Store stiffness matrix entries
+        ids = countK + (1:121);
+        IK(ids) = r(:);
+        JK(ids) = c(:);
+        VK(ids) = kt(:);
+        countK = countK + 121;
+
     end
 
     % Construct sparse matrices

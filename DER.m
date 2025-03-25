@@ -21,7 +21,7 @@ while sol.t < ana.tf
     sol.t = sol.t + ana.dt; fprintf("Time: %.2f ------------ \n", sol.t)
     
     % Update time dependant properties
-    [Rods, sol] = assignTimeDependants(Rods, ana, sol, nrods);
+    [Rods, sol] = assignTimeDependants(Rods, ana, sol);
 
     % Initialize properties
     sys = systemProperties(Rods, ana, sol);

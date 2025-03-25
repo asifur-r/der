@@ -45,21 +45,28 @@ function [mat1, mat2] = bendingGradient(t, enorm, kapb, kap1, kap2, m1, m2)
         dk2dtf = -0.5 * dot(kb, m2f);
 
         % Construct the 11-element derivative vector for kappa 1 and 2
-        mat1(i, :) = dkvec(dk1de, dk1df, dk1dte, dk1dtf);
-        mat2(i, :) = dkvec(dk2de, dk2df, dk2dte, dk2dtf);
-        
+        % mat1(i, :) = dkvec(dk1de, dk1df, dk1dte, dk1dtf);
+        % mat2(i, :) = dkvec(dk2de, dk2df, dk2dte, dk2dtf);
+
+        % By direct assignment (without using dkvec)
+        mat1(i, :) = [-dk1de, dk1dte, dk1de - dk1df, dk1dtf, dk1df];
+        mat2(i, :) = [-dk2de, dk2dte, dk2de - dk2df, dk2dtf, dk2df];
+
     end
     
 end
 
-function vec = dkvec(dkde, dkdf, dkdte, dkdtf)
+% function vec = dkvec(dkde, dkdf, dkdte, dkdtf)
 
-    vec = zeros(1, 11);
+%     vec = zeros(1, 11);
 
-    vec(1:3)  = -dkde;
-    vec(5:7)  =  dkde - dkdf;
-    vec(9:11) =         dkdf;
-    vec(4)    =  dkdte;
-    vec(8)    =  dkdtf;
+%     vec(1:3)  = -dkde;
+%     vec(5:7)  =  dkde - dkdf;
+%     vec(9:11) =         dkdf;
+%     vec(4)    =  dkdte;
+%     vec(8)    =  dkdtf;
+
+%     % Alternate construction
+%     % vec = [-dkde, dkdte, dkde - dkdf, dkdtf, dkdf];
     
-end
+% end

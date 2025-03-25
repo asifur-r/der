@@ -89,80 +89,142 @@ function [mat3d1, mat3d2] = bendingHessian(t, enorm, kapb, kap1, kap2, m1, m2)
         dk2dfdge = 1 / enf * (0.5 * dot_kb_m2e * tt + 1 / chi * cross(te, m2e));
         dk2dfdgf = 1 / enf * (0.5 * dot_kb_m2f * tt + 1 / chi * cross(te, m2f));
         
-        mat3d1(:,:,i) = der2mat2(dk1dede, dk1dedf, dk1dfde, dk1dfdf, dk1dgedge, dk1dgfdgf, dk1dedge, dk1dfdge, dk1dedgf, dk1dfdgf);
-        mat3d2(:,:,i) = der2mat2(dk2dede, dk2dedf, dk2dfde, dk2dfdf, dk2dgedge, dk2dgfdgf, dk2dedge, dk2dfdge, dk2dedgf, dk2dfdgf);
+        mat3d1(:,:,i) = der2mat(dk1dede, dk1dedf, dk1dfde, dk1dfdf, dk1dgedge, dk1dgfdgf, dk1dedge, dk1dfdge, dk1dedgf, dk1dfdgf);
+        mat3d2(:,:,i) = der2mat(dk2dede, dk2dedf, dk2dfde, dk2dfdf, dk2dgedge, dk2dgfdgf, dk2dedge, dk2dfdge, dk2dedgf, dk2dfdgf);
+
     end
     
 end
 
 function mat = der2mat(dkdede, dkdedf, dkdfde, dkdfdf, dkdgedge, dkdgfdgf, dkdedge, dkdfdge, dkdedgf, dkdfdgf)
-
-    mat = zeros(11);
-
-    % Edge only terms
-    mat(1:3, 1:3)  =   dkdede;
-    mat(1:3, 5:7)  = - dkdede + dkdedf;
-    mat(1:3, 9:11) =          - dkdedf;
-    mat(5:7, 1:3)  = - dkdede          + dkdfde;
-    mat(5:7, 5:7)  =   dkdede - dkdedf - dkdfde + dkdfdf;
-    mat(5:7, 9:11) =            dkdedf          - dkdfdf;
-    mat(9:11, 1:3) =                   - dkdfde;
-    mat(9:11, 5:7) =                     dkdfde - dkdfdf;
-    mat(9:11, 9:11)=                              dkdfdf;
-    
-    % Angle only terms
-    mat(4, 4) = dkdgedge;
-    mat(8, 8) = dkdgfdgf;
-    
-    % Edge-angle coupled terms
-    mat(1:3, 4)  = - dkdedge;
-    mat(5:7, 4)  =   dkdedge  - dkdfdge;
-    mat(9:11,4)  =              dkdfdge;
-    mat(4, 1:3)  = - dkdedge';
-    mat(4, 5:7)  =   dkdedge' - dkdfdge';
-    mat(4, 9:11) =              dkdfdge';
-    
-    mat(1:3, 8)  = - dkdedgf;
-    mat(5:7, 8)  =   dkdedgf  - dkdfdgf;
-    mat(9:11,8)  =              dkdfdgf;
-    mat(8, 1:3)  = - dkdedgf';
-    mat(8, 5:7)  =   dkdedgf' - dkdfdgf';
-    mat(8, 9:11) =              dkdfdgf';
-end
-
-function mat = der2mat2(dkdede, dkdedf, dkdfde, dkdfdf, dkdgedge, dkdgfdgf, dkdedge, dkdfdge, dkdedgf, dkdfdgf)
-    % This function constructs the matrix by storing the upper triangle, then mirroing it
-
-    mat = zeros(11);
+    % This appraoch stores the submatrices from the input, then constructs the final 11x11 matrix by direct assignment
 
     % Edge only terms
-    mat(1:3, 1:3)  =   dkdede;
-    mat(1:3, 5:7)  = - dkdede + dkdedf;
-    mat(1:3, 9:11) =          - dkdedf;
-    mat(5:7, 5:7)  =   dkdede - dkdedf - dkdfde + dkdfdf;
-    mat(5:7, 9:11) =            dkdedf          - dkdfdf;
-    mat(9:11, 9:11)=                              dkdfdf;
+    A =   dkdede;
+    B = - dkdede + dkdedf;
+    C =          - dkdedf;
+
+    D = - dkdede          + dkdfde;
+    E =   dkdede - dkdedf - dkdfde + dkdfdf;
+    F =            dkdedf          - dkdfdf;
+
+    G =                   - dkdfde;
+    H =                     dkdfde - dkdfdf;
+    I =                              dkdfdf;
     
     % Angle only terms
-    mat(4, 4) = dkdgedge;
-    mat(8, 8) = dkdgfdgf;
-    
+    d1 = dkdgedge;
+    d2 = 0;
+    d3 = 0;
+    d4 = dkdgfdgf;
+
     % Edge-angle coupled terms
-    mat(1:3, 4)  = - dkdedge;
-    mat(4, 5:7)  =   dkdedge' - dkdfdge';
-    mat(4, 9:11) =              dkdfdge';
-    
-    mat(1:3, 8)  = - dkdedgf;
-    mat(5:7, 8)  =   dkdedgf  - dkdfdgf;
-    mat(8, 9:11) =              dkdfdgf';
+    c1 = - dkdedge';
+    c3 =   dkdedge' - dkdfdge';
+    c5 =              dkdfdge';
+    c2 = - dkdedgf';
+    c4 =   dkdedgf' - dkdfdgf';
+    c6 =              dkdfdgf';
 
-    % Making upper triangle by setting some lower diagonal terms to zero
-    mat(2, 1) = 0;
-    mat(6, 5) = 0;
-    mat(10,9) = 0;
-    mat(3,1:2) = 0;
-    mat(7,5:6) = 0;
-    mat(11,9:10) = 0;
+    r1 = - dkdedge;
+    r2 =   dkdedge - dkdfdge;
+    r3 =             dkdfdge;
+    r4 = - dkdedgf;
+    r5 =   dkdedgf - dkdfdgf;
+    r6 =             dkdfdgf;
 
-    mat = mat + triu(mat, 1)';
+    mat = [
+        A   c1  B   c2  C ;
+        r1  d1  r2  d2  r3;
+        D   c3  E   c4  F ;
+        r4  d3  r5  d4  r6;
+        G   c5  H   c6  I];
+
+    % Matrix map: 11x11
+    % A to F are 3x3, r1 to r6 are 1x3, and c1 to c6 are 3x1
+    %
+    % ---------------------------
+    %  A  | c1  |  B  | c2  | C
+    % ---------------------------
+    % r1  | d1  | r2  | d2  | r3
+    % ---------------------------
+    %  D  | c3  |  E  | c4  | F
+    % ---------------------------
+    % r4  | d3  | r5  | d4  | r6
+    % ---------------------------
+    %  G  | c5  |  H  | c6  | I
+    % ---------------------------
+
 end
+
+% function mat = der2mat(dkdede, dkdedf, dkdfde, dkdfdf, dkdgedge, dkdgfdgf, dkdedge, dkdfdge, dkdedgf, dkdfdgf)
+%     This is the most basic approach where the submatrices are inserted into the zero matrix
+%     mat = zeros(11);
+
+%     % Edge only terms
+%     mat(1:3, 1:3)  =   dkdede;
+%     mat(1:3, 5:7)  = - dkdede + dkdedf;
+%     mat(1:3, 9:11) =          - dkdedf;
+%     mat(5:7, 1:3)  = - dkdede          + dkdfde;
+%     mat(5:7, 5:7)  =   dkdede - dkdedf - dkdfde + dkdfdf;
+%     mat(5:7, 9:11) =            dkdedf          - dkdfdf;
+%     mat(9:11, 1:3) =                   - dkdfde;
+%     mat(9:11, 5:7) =                     dkdfde - dkdfdf;
+%     mat(9:11, 9:11)=                              dkdfdf;
+    
+%     % Angle only terms
+%     mat(4, 4) = dkdgedge;
+%     mat(8, 8) = dkdgfdgf;
+    
+%     % Edge-angle coupled terms
+%     mat(1:3, 4)  = - dkdedge;
+%     mat(5:7, 4)  =   dkdedge  - dkdfdge;
+%     mat(9:11,4)  =              dkdfdge;
+%     mat(4, 1:3)  = - dkdedge';
+%     mat(4, 5:7)  =   dkdedge' - dkdfdge';
+%     mat(4, 9:11) =              dkdfdge';
+    
+%     mat(1:3, 8)  = - dkdedgf;
+%     mat(5:7, 8)  =   dkdedgf  - dkdfdgf;
+%     mat(9:11,8)  =              dkdfdgf;
+%     mat(8, 1:3)  = - dkdedgf';
+%     mat(8, 5:7)  =   dkdedgf' - dkdfdgf';
+%     mat(8, 9:11) =              dkdfdgf';
+% end
+
+% function mat = der2matUT(dkdede, dkdedf, dkdfde, dkdfdf, dkdgedge, dkdgfdgf, dkdedge, dkdfdge, dkdedgf, dkdfdgf)
+%     % This appraoch constructs the matrix by storing the upper triangle, then mirroing it
+
+%     mat = zeros(11);
+
+%     % Edge only terms
+%     mat(1:3, 1:3)  =   dkdede;
+%     mat(1:3, 5:7)  = - dkdede + dkdedf;
+%     mat(1:3, 9:11) =          - dkdedf;
+%     mat(5:7, 5:7)  =   dkdede - dkdedf - dkdfde + dkdfdf;
+%     mat(5:7, 9:11) =            dkdedf          - dkdfdf;
+%     mat(9:11, 9:11)=                              dkdfdf;
+    
+%     % Angle only terms
+%     mat(4, 4) = dkdgedge;
+%     mat(8, 8) = dkdgfdgf;
+    
+%     % Edge-angle coupled terms
+%     mat(1:3, 4)  = - dkdedge;
+%     mat(4, 5:7)  =   dkdedge' - dkdfdge';
+%     mat(4, 9:11) =              dkdfdge';
+    
+%     mat(1:3, 8)  = - dkdedgf;
+%     mat(5:7, 8)  =   dkdedgf  - dkdfdgf;
+%     mat(8, 9:11) =              dkdfdgf';
+
+%     % Making upper triangle by setting some lower diagonal terms to zero
+%     mat(2, 1) = 0;
+%     mat(6, 5) = 0;
+%     mat(10,9) = 0;
+%     mat(3,1:2) = 0;
+%     mat(7,5:6) = 0;
+%     mat(11,9:10) = 0;
+
+%     mat = mat + triu(mat, 1)';
+% end

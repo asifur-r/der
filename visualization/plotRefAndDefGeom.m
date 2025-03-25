@@ -29,7 +29,7 @@ function plotRefAndDefGeom(qi, qf, r)
     end
 
     axis equal
-    view([0 0]) % XZ view
+    % view([0 0]) % XZ view
 
     % plotRodTags(qi, r);
     % plotNodeTags(qi);

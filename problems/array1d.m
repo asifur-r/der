@@ -90,7 +90,7 @@ tfinal = tend + dtSupp;
 % plotTimeSeries(TS, 0, tfinal, dt); return
 
 % ==================================================
-% RESTRAINT ASSIGNMENT
+% BOUNDARY CONDITIONS
 % ==================================================
 
 % Boundary nodes
@@ -109,7 +109,7 @@ rods(1) = Restraint(rods(1), bnNodes(1:end-1), 2, 1, length(TS));
 for i=1:Nunits; rods(1) = Restraint(rods(1), bnNodes(i), [1 3], 1, Nunits+i); end
     
 % ==================================================
-% LOAD ASSIGNMENT
+% LOAD OR DISPLACEMENT
 % ==================================================
 
 % Prescribed displacement (mm)
@@ -120,9 +120,9 @@ dispNodes = archSeries.Peaks();
 
 % Assign loads or prescribed displacements
 for i=1:Nunits; rods(1) = Displacement(rods(1), dispNodes(i), 3, D, i); end
-% return
+
 % ==================================================
-% ROD PAIRS AND LINKER SPECS
+% CONNECTIONS
 % ==================================================
 
 link = [];
@@ -136,16 +136,16 @@ liveDofs = [ones(Nunits,1) dispNodes' 3*ones(Nunits,1)];
 % liveDofs = [1 dispNodes(1) 3];
 
 % Visual
-vis = [];%Visual('deformed', true);%, 'dofs', liveDofs);
+vis = [];% Visual('deformed', true);%, 'dofs', liveDofs);
 
 % Monitor
-mon = []; %Monitor('iter', perIter, 'step', perStep);
+mon = []; % Monitor('iter', perIter, 'step', perStep);
 
 % Recorder
 rec = [];
 
 % ==================================================
-% ANALYSIS
+% ANALYSIS SETUP
 % ==================================================
 
 % Analysis object
@@ -154,7 +154,7 @@ ana = Analysis('static', tfinal, dt);
 ana = ana.Integration('euler');
 % ana = ana.Integration('newmark', 0.75);
 ana = ana.Solver('nr');
-ana = ana.Convergence(1e-5, 50);
+ana = ana.Convergence(1e-4, 50);
 ana = ana.Constraint('elimination');
 % ana = ana.Constraint('penalty', 1e9);
 % ana = ana.Damping('rayleigh', 0.0001, 0.00001);
@@ -165,7 +165,7 @@ kp = 1e7;
 
 % Get the node tags for equal dofs by expanding arch joint nodes by 5
 % Note: There are 5 nodes on each side of each joint which are same as the base
-eqDofs = expandVector(archSeries.Joints(), 5);
+eqDofs = expandVectorElements(archSeries.Joints(), 5);
 
 % Between rods
 for i = 1:length(eqDofs); ana = ana.EqualDof(1, eqDofs(i), 2, eqDofs(i), 1:3, kp, length(TS)); end

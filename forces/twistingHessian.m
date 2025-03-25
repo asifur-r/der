@@ -19,24 +19,70 @@ function mat3d = twistingHessian(t, enorm, kapb)
         skewt_te = [0 -te(3) te(2); te(3) 0 -te(1); -te(2) te(1) 0];
 
         % Compute each second derivatives (3x3 block)
-        d2mdede = -0.25 / enorm_e^2 * ( kapb_i' * (te + ttil) + (te + ttil)' * kapb_i);
-        d2mdfdf = -0.25 / enorm_f^2 * ( kapb_i' * (tf + ttil) + (tf + ttil)' * kapb_i);
-        d2mdedf =  0.50 / (enorm_e * enorm_f) * (2.0 / chi * skewt_te - kapb_i' * ttil);
-        d2mdfde = d2mdedf';
+        dmdede = -0.25 / enorm_e^2 * ( kapb_i' * (te + ttil) + (te + ttil)' * kapb_i);
+        dmdfdf = -0.25 / enorm_f^2 * ( kapb_i' * (tf + ttil) + (tf + ttil)' * kapb_i);
+        dmdedf =  0.50 / (enorm_e * enorm_f) * (2.0 / chi * skewt_te - kapb_i' * ttil);
+        dmdfde = dmdedf';
         
-        % Place as 3x3 block
-        mat3d(1:3, 1:3, i) =  d2mdede;
-        mat3d(1:3, 9:11,i) = -d2mdedf;
-        mat3d(9:11,1:3, i) = -d2mdfde;
-        mat3d(9:11,9:11,i) =  d2mdfdf;
+        mat3d(:,:,i) = der2mat(dmdede, dmdedf, dmdfde, dmdfdf);
 
-        mat3d(1:3, 5:7, i) = -d2mdede + d2mdedf;
-        mat3d(5:7, 1:3, i) = -d2mdede + d2mdfde;
-        mat3d(5:7, 9:11,i) =  d2mdedf - d2mdfdf;
-        mat3d(9:11,5:7, i) =  d2mdfde - d2mdfdf;
-
-        mat3d(5:7, 5:7, i) =  d2mdede - ( d2mdedf + d2mdfde ) + d2mdfdf;
-    
     end
 
 end
+
+function mat = der2mat(dmdede, dmdedf, dmdfde, dmdfdf)
+
+    mat = zeros(11);
+
+    A =   dmdede;
+    B = - dmdede + dmdedf;
+    C =          - dmdedf;
+
+    D = - dmdede          + dmdfde;
+    E =   dmdede - dmdedf - dmdfde + dmdfdf;
+    F =            dmdedf -          dmdfdf;
+
+    G =                   - dmdfde;
+    H =                     dmdfde - dmdfdf;
+    I =                              dmdfdf;
+    
+    mat([1:3, 5:7, 9:11], [1:3, 5:7, 9:11]) = [...
+        A B C; 
+        D E F; 
+        G H I
+    ];
+    
+    % Matrix map: 11x11
+    % A to F are 3x3, the dots (.) are zero matrices of 3x1 or 1x3
+    %
+    % ---------------------------
+    %  A  | .  |  B  |  .  | C
+    % ---------------------------
+    %  .  | .  |  .  |  .  | .
+    % ---------------------------
+    %  D  | .  |  E  |  .  | F
+    % ---------------------------
+    %  .  | .  |  .  |  .  | .
+    % ---------------------------
+    %  G  | .  |  H  |  .  | I
+    % ---------------------------
+
+end
+
+% function mat = der2mat(dmdede, dmdedf, dmdfde, dmdfdf)
+
+%     mat = zeros(11);
+
+%     mat(1:3, 1:3)   =   dmdede;
+%     mat(1:3, 5:7)   = - dmdede + dmdedf;
+%     mat(1:3, 9:11)  =          - dmdedf;
+
+%     mat(5:7, 1:3)   = - dmdede          + dmdfde;
+%     mat(5:7, 5:7)   =   dmdede - dmdedf - dmdfde + dmdfdf;
+%     mat(5:7, 9:11)  =            dmdedf -          dmdfdf;
+
+%     mat(9:11, 1:3)  =                   - dmdfde;
+%     mat(9:11, 5:7)  =                     dmdfde - dmdfdf;
+%     mat(9:11, 9:11) =                              dmdfdf;
+
+% end

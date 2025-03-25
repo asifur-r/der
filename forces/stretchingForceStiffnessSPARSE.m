@@ -36,11 +36,32 @@ function [Fs, Ks] = stretchingForceStiffnessSPARSE(t, enorm, enormbar, EA)
         ks = EA(i) * ( (1/enormbar(i) - 1/enorm(i)) * eye(3) + (t(i,:)' * t(i,:)) / enorm(i) );
         
         % Store stiffness matrix entries
-        [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p, p,  ks);
-        [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, q, q,  ks);
-        [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p, q, -ks);
-        [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, q, p, -ks);
+        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p, p,  ks);
+        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, q, q,  ks);
+        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p, q, -ks);
+        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, q, p, -ks);
+
+        % Alternate technique without addSparseBlock
+
+        % Generate row and col
+        rows = [p q]; cols = [p q];
         
+        % Generate indices using ndgrid
+        % [r, c] = ndgrid(rows, cols);
+
+        % Without using ndgrid
+        r = rows(:) .* ones(1, length(cols));
+        c = ones(length(rows), 1) .* cols(:)';
+
+        % Combine the stiffness sub matrices (four 3x3)
+        k = [ks -ks; -ks ks];
+
+        % Store stiffness matrix entries
+        ids = countK + (1:36);
+        IK(ids) = r(:);
+        JK(ids) = c(:);
+        VK(ids) = k(:);
+        countK = countK + 36;
     end
 
     % Construct sparse matrices

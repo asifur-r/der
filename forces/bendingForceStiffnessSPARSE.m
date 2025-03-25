@@ -45,7 +45,27 @@ function [Fb, Kb] = bendingForceStiffnessSPARSE(t, enorm, kapb, kap1, kap2, kap1
         kb = A + B + C + D;
 
         % Store stiffness matrix entries
-        [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p:q, p:q, kb);
+        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p:q, p:q, kb);
+
+        % Alternate technique without addSparseBlock
+
+        % Generate row and col
+        rows = p:q; cols = p:q;
+
+        % Generate indices using ndgrid
+        % [r, c] = ndgrid(rows, cols);
+
+        % Without using ndgrid
+        r = rows(:) .* ones(1, length(cols));
+        c = ones(length(rows), 1) .* cols(:)';
+        
+        % Store stiffness matrix entries
+        ids = countK + (1:121);
+        IK(ids) = r(:);
+        JK(ids) = c(:);
+        VK(ids) = kb(:);
+        countK = countK + 121;
+
     end
 
     % Construct sparse matrices

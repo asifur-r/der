@@ -1,8 +1,5 @@
-function [vec, val] = freeSysDofs(Res, Prdisp, ana)
+function [vec, val] = freeSysDofs(Res, Prdisp, ana, dofs, ndofs)
     % Returns number of system dofs for multi rod and its length
-    
-    % System dofs
-    [ndofs, dofs] = deal(length(Res), 1:length(Res));
     
     % System dofs
     % [dofs, ndofs] = sysDofs(Rods);

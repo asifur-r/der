@@ -11,19 +11,14 @@ function [F, K] = linkerPenaltySPARSE(Rods, conn, sys)
     ndof = sys.ndof;
 
     % Preallocate space for sparse triplets
-    % Each processNodePair call inserts 36 items (Four 3x3 block)
-    % Each processEdgePair call inserts 4 items (One 2x2 block)
-    % lengthK = nconn (outer for) x 2 (inner for) x (36 + 36 + 4) = 152 x nconn
-
-    lengthK = 152 * nconn;
+    lengthK = 152 * nconn; % lengthK = nconn (outer for) x 2 (inner for) x (36 + 36 + 4) = 152 x nconn
     countK = 0;
     IK = zeros(lengthK, 1);
     JK = zeros(lengthK, 1);
     VK = zeros(lengthK, 1);
     
     % Preallocate space for force vector
-    % lengthF = nconn (outer for) x 2 (inner for) x (6 + 6 + 2) = 28 x nconn
-    lengthF = 28 * nconn;
+    lengthF = 28 * nconn; % lengthF = nconn (outer for) x 2 (inner for) x (6 + 6 + 2) = 28 x nconn
     countF = 0;
     IF = zeros(lengthF, 1); % Upper bound estimate for force vector
     VF = zeros(lengthF, 1);
@@ -35,27 +30,44 @@ function [F, K] = linkerPenaltySPARSE(Rods, conn, sys)
         c = conn(i, j);
         
         % Process positional node pairs (M-m and N-n)
-        [IF, VF, countF, IK, JK, VK, countK] = processNodePair(IF, VF, countF, IK, JK, VK, countK, c.R, c.M, c.r, c.m, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
-        [IF, VF, countF, IK, JK, VK, countK] = processNodePair(IF, VF, countF, IK, JK, VK, countK, c.R, c.N, c.r, c.n, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
+        [IF1, VF1, IK1, JK1, VK1] = processNodePair(c.R, c.M, c.r, c.m, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
+        [IF2, VF2, IK2, JK2, VK2] = processNodePair(c.R, c.N, c.r, c.n, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
         
         % Process angular edge pair (E-e)
-        [IF, VF, countF, IK, JK, VK, countK] = processEdgePair(IF, VF, countF, IK, JK, VK, countK, c.R, c.E, c.r, c.e, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
+        [IF3, VF3, IK3, JK3, VK3] = processEdgePair(c.R, c.E, c.r, c.e, qs{c.R}, qs{c.r}, c.p, sys.ndofpr);
+
+        % Insert into global vectors
+        ids = countF + (1:14); % 6 + 6 + 2
+        IF(ids) = [IF1; IF2; IF3];
+        VF(ids) = [VF1; VF2; VF3];
+        countF = countF + 14;
         
+        ids = countK + (1:76); % 36 + 36 + 4
+        IK(ids) = [IK1; IK2; IK3];
+        JK(ids) = [JK1; JK2; JK3];
+        VK(ids) = [VK1; VK2; VK3];
+        countK = countK + 76;
+
     end
     end
-
-    % Construct sparse stiffness matrix
-    K = sparse(IK, JK, VK, ndof, ndof);
-
-    % Construct sparse force vector
+    
+    % Construct sparse matrices
     F = sparse(IF, ones(length(IF), 1), VF, ndof, 1);
-
+    K = sparse(IK, JK, VK, ndof, ndof);
+    
     % Ensure matrix size consistency
     assert(isequal(size(K), [ndof, ndof]), 'Stiffness matrix size changed while adding penalty');
 end
 
-function [IF, VF, countF, IK, JK, VK, countK] = processNodePair(IF, VF, countF, IK, JK, VK, countK, R, N, r, n, Rq, rq, p, ndofspr)
+function [IF, VF, IK, JK, VK] = processNodePair(R, N, r, n, Rq, rq, p, ndofspr)
     % Process positional constraints for node pairs
+
+    % Preallocate sparse storage force vector
+    IK = zeros(36, 1);
+    JK = zeros(36, 1);
+    VK = zeros(36, 1);
+    IF = zeros(6, 1);
+    VF = zeros(6, 1);
 
     % Stiffness penalty terms
     pmat = diag([p p p]);
@@ -69,11 +81,32 @@ function [IF, VF, countF, IK, JK, VK, countK] = processNodePair(IF, VF, countF, 
     r3 = node2sysdof(r, n, 1, ndofspr);
     r4 = r3 + 2;
     
-    % Insert penalty terms into sparse storage
-    [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r1:r2, r1:r2,  pmat); % Top-left
-    [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r3:r4, r3:r4,  pmat); % Bottom-right
-    [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r1:r2, r3:r4, -pmat); % Top-right
-    [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r3:r4, r1:r2, -pmat); % Bottom-left
+    % Generate row and col
+    rows = [r1:r2, r3:r4]; cols = [r1:r2, r3:r4];
+
+    % Generate indices using ndgrid
+    % [r, c] = ndgrid(rows, cols);
+
+    % Without using ndgrid
+    r = rows(:) .* ones(1, length(cols));
+    c = ones(length(rows), 1) .* cols(:)';
+    
+    % Combine the stiffness sub matrices (four 3x3)
+    kp = [pmat -pmat; -pmat pmat];
+
+    % Store stiffness matrix entries
+    % ids = countK + (1:36);
+    ids = 1:36;
+    IK(ids) = r(:);
+    JK(ids) = c(:);
+    VK(ids) = kp(:);
+    % countK = countK + 36;
+
+    % % Insert penalty terms into sparse storage
+    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r1:r2, r1:r2,  pmat); % Top-left
+    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r3:r4, r3:r4,  pmat); % Bottom-right
+    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r1:r2, r3:r4, -pmat); % Top-right
+    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r3:r4, r1:r2, -pmat); % Bottom-left
     
     % Compute internal forces
     RNq = Rq(node2dof(N, dofs));
@@ -81,14 +114,22 @@ function [IF, VF, countF, IK, JK, VK, countK] = processNodePair(IF, VF, countF, 
     fvec = p * (RNq - rnq);
 
     % Store force vector entries
-    ids = countF + (1:6);
+    % ids = countF + (1:6);
+    ids = 1:6;
     IF(ids) = [r1:r2, r3:r4]';
     VF(ids) = [fvec; -fvec];
-    countF = countF + 6;
+    % countF = countF + 6;
 end
 
-function [IF, VF, countF, IK, JK, VK, countK] = processEdgePair(IF, VF, countF, IK, JK, VK, countK, R, N, r, n, Rq, rq, p, ndofspr)
+function [IF, VF, IK, JK, VK] = processEdgePair(R, N, r, n, Rq, rq, p, ndofspr)
     % Process torsional constraints for edge pairs
+
+    % Preallocate sparse storage force vector
+    IK = zeros(4, 1);
+    JK = zeros(4, 1);
+    VK = zeros(4, 1);
+    IF = zeros(2, 1);
+    VF = zeros(2, 1);
 
     % Torsional DOF
     dof = 4;
@@ -99,11 +140,12 @@ function [IF, VF, countF, IK, JK, VK, countK] = processEdgePair(IF, VF, countF, 
     
     % Insert penalty terms into sparse storage
     % Diagonal terms are positive, cross diagonals are negative
-    ids = countK + (1:4);
+    % ids = countK + (1:4);
+    ids = 1:4;
     IK(ids) = [r1 r2 r1 r2]';
     JK(ids) = [r1 r2 r2 r1]';
     VK(ids) = [p  p -p -p]';
-    countK = countK + 4;
+    % countK = countK + 4;
     
     % Compute internal forces
     RNq = Rq(node2dof(N, dof));
@@ -111,9 +153,10 @@ function [IF, VF, countF, IK, JK, VK, countK] = processEdgePair(IF, VF, countF, 
     f = p * (RNq - rnq);
 
     % Store force vector entries
-    ids = countF + (1:2);
+    % ids = countF + (1:2);
+    ids = 1:2;
     IF(ids) = [r1 r2]';
     VF(ids) = [f -f]';
-    countF = countF + 2;
+    % countF = countF + 2;
 
 end
