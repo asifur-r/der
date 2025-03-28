@@ -88,7 +88,7 @@ function [mat3d1, mat3d2] = bendingHessian(t, enorm, kapb, kap1, kap2, m1, m2)
         dk2dedgf = 1 / ene * (0.5 * dot_kb_m2f * tt - 1 / chi * cross(tf, m2f));
         dk2dfdge = 1 / enf * (0.5 * dot_kb_m2e * tt + 1 / chi * cross(te, m2e));
         dk2dfdgf = 1 / enf * (0.5 * dot_kb_m2f * tt + 1 / chi * cross(te, m2f));
-        
+                
         mat3d1(:,:,i) = der2mat(dk1dede, dk1dedf, dk1dfde, dk1dfdf, dk1dgedge, dk1dgfdgf, dk1dedge, dk1dfdge, dk1dedgf, dk1dfdgf);
         mat3d2(:,:,i) = der2mat(dk2dede, dk2dedf, dk2dfde, dk2dfdf, dk2dgedge, dk2dgfdgf, dk2dedge, dk2dfdge, dk2dedgf, dk2dfdgf);
 

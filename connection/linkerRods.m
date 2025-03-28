@@ -6,7 +6,7 @@ function [linkers, connection] = linkerRods(rods, linkspec)
     if isempty(linkspec); linkers = []; connection = []; return; end
 
     % Number of actual rods (used for generating linker tag)
-    nrods = length(rods);
+    numMainRods = length(rods);
 
     % Construct the pairs matrix
     pairs = arrayfun(@(i) i.pair, linkspec, 'UniformOutput', false); pairs = vertcat(pairs{:});
@@ -78,7 +78,7 @@ function [linkers, connection] = linkerRods(rods, linkspec)
             if (p > 1) && (q < nptsB) % Check if (p-1)th point in A and (q+1)th point in B exist
 
                 % Determine linker tag
-                linkTag = nrods + countLink;
+                linkTag = numMainRods + countLink;
 
                 % connStruct(R, r, M, m, N, n, E, e, p)
                 e1 = connStruct(rodATag, linkTag, p-1, 1,   p, 2, p-1, 1, linkspec(i).penalty);
@@ -101,7 +101,7 @@ function [linkers, connection] = linkerRods(rods, linkspec)
             if (q > 1) && (p < nptsA) % Check if (q-1)th point in B and (p+1)th point in A exist
                 
                 % Determine linker tag
-                linkTag = nrods + countLink;
+                linkTag = numMainRods + countLink;
 
                 % connStruct(R, r, M, m, N, n, E, e, p)
                 e1 = connStruct(rodBTag, linkTag, q-1, 1,   q, 2, q-1, 1, linkspec(i).penalty);

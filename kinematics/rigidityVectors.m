@@ -1,9 +1,9 @@
 function [EA, GJ, EIx, EIy] = rigidityVectors(nele, h, w, E, nu)
 
     % nele = number of elements
-    % h = height
-    % w = width
-    % E = modulus of elasticity
+    % h  = height
+    % w  = width
+    % E  = modulus of elasticity
     % nu = Poisson's ratio
 
     % Height and width vector for each section
@@ -51,8 +51,8 @@ function [EA, GJ, EIx, EIy] = rigidityVectors(nele, h, w, E, nu)
 
     % % Makes rigidity unit
     % EA  = ones(nele, 1);
-    % EIx  = ones(nele+1, 1);
-    % EIy  = ones(nele+1, 1);
+    % EIx = ones(nele+1, 1);
+    % EIy = ones(nele+1, 1);
     % GJ  = ones(nele+1, 1);
 
 end

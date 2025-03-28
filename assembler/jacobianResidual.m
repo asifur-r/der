@@ -4,7 +4,7 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     fr = sys.frdof; Fext = sol.Fext;
     
     % Get system level internal force and stiffness (only stacks F and K for multi rods)
-    [Fi, Kt] = stackForceStiffness(Rods); KNP = Kt(fr,fr); % KNP = K with no penalty terms, used for computing damping matrix C
+    [Fi, Kt] = stackForceStiffness(Rods, ana, sys); KNP = Kt(fr,fr); % KNP = K with no penalty terms, used for computing damping matrix C
     
     % Add linker penalty force and stiffness
     if ~isempty(conn); [Fl, Kl] = linkerPenaltySPARSE(Rods, conn, sys); Fi = Fi + Fl; Kt = Kt + Kl; end

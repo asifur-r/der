@@ -3,7 +3,9 @@ classdef systemProperties
 
     properties (SetAccess = private, GetAccess = public)
 
-        nRods       % Number of rods
+        numRods     % Number of all rods (including linkers)
+        numMainRods % Number of main rods
+        numLinkers  % Number of linkers
         
         dof         % System dof tags
         ndof        % Number of system dof
@@ -22,11 +24,14 @@ classdef systemProperties
 
     methods
 
-        function obj = systemProperties(Rods, ana, sol) 
+        function obj = systemProperties(Rods, ana, sol, nlinkers) 
             % Class constructor
 
             % Time independant properties
-            obj.nRods = length(Rods);
+            obj.numRods = length(Rods);
+            obj.numLinkers = nlinkers;
+            obj.numMainRods = obj.numRods - obj.numLinkers;
+
             obj.ndofpr = ndofsPerRod(Rods);
             [obj.dof, obj.ndof] = sysDofs(Rods);
             

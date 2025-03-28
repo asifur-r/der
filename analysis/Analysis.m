@@ -25,6 +25,8 @@ classdef Analysis
 
         timeSeries  % Time series array
         equalDof    % Multi point constraint
+        
+        isParallel  % Parallel processing logical
     end
 
     methods
@@ -40,6 +42,9 @@ classdef Analysis
             obj.type = type;
             obj.tf = tf;
             obj.dt = dt;
+
+            % Default
+            obj.isParallel = false;
 
         end
 
@@ -144,6 +149,10 @@ classdef Analysis
             end
             
 
+        end
+
+        function obj = Parallel(obj, val)
+            if val == true; obj.isParallel = val; end
         end
 
         function Validate(obj)

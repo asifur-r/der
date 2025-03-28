@@ -39,7 +39,7 @@ function result = processTimeDependent(Rods, ana, t, field, fieldTag)
         % Time series values using a for loop
         for k = 1:length(tags); tvals(k) = ana.timeSeries(tags(k)).GetValue(t); end
         
-        % % Time series values
+        % % Time series values using arrayfun
         % tvals = arrayfun(@(i) ana.timeSeries(i).GetValue(t), tags)
 
         % Construct full sized zero vector
@@ -55,42 +55,6 @@ function result = processTimeDependent(Rods, ana, t, field, fieldTag)
     % Convert cell array to concatenated array
     result = vertcat(resultCell{:});
 end
-
-
-% function [Rods, sol] = assignTimeDependants(Rods, ana, sol)
-%     % Set time-dependent variables (Fext, Res, Prdisp) and return solver object
-    
-%     % Add a default constant time series of zero value beforehand
-%     timeSeries = [Series('constant', 0), ana.timeSeries];
-
-%     % Time
-%     t = sol.t;
-
-%     Number of rods
-%     nRods = length(Rods);
-
-%     % Preallocate cell arrays
-%     Res = cell(nRods, 1);
-%     Fext = cell(nRods, 1);
-%     Prdisp = cell(nRods, 1);
-
-%     for r = 1:nRods
-%         % Precompute time series values for the given tags
-%         resVals    = arrayfun(@(i) timeSeries(i).GetValue(t), Rods(r).resTag);
-%         fextVals   = arrayfun(@(i) timeSeries(i).GetValue(t), Rods(r).fextTag);
-%         prdispVals = arrayfun(@(i) timeSeries(i).GetValue(t), Rods(r).prdispTag);
-
-%         % Element-wise multiplication
-%         Res{r} = resVals .* Rods(r).res;
-%         Fext{r} = fextVals .* Rods(r).fext;
-%         Prdisp{r} = prdispVals .* Rods(r).prdisp;
-%     end
-
-%     % Convert cell arrays to concatenated arrays
-%     sol.Res = vertcat(Res{:});
-%     sol.Fext = vertcat(Fext{:});
-%     sol.Prdisp = vertcat(Prdisp{:});
-% end
 
 
 % function [Rods, sol] = assignTimeDependants(Rods, ana, sol)

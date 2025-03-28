@@ -9,8 +9,8 @@ ana.Validate();
 % Contains both regular and linker ders
 Rods = [rods, linkers];
 
-% Number of actual rod
-nrods = length(rods);
+% Number of actual rod and linkers
+numRods = length(rods); numLinkers = length(linkers);
 
 % Initialize solver stuct
 sol = solver(Rods);
@@ -24,7 +24,7 @@ while sol.t < ana.tf
     [Rods, sol] = assignTimeDependants(Rods, ana, sol);
 
     % Initialize properties
-    sys = systemProperties(Rods, ana, sol);
+    sys = systemProperties(Rods, ana, sol, numLinkers);
 
     % Initialize displacement vector for iteration
     sol.u = sol.up;
@@ -33,7 +33,7 @@ while sol.t < ana.tf
     while sol.i <= ana.maxiter
 
         % Compute jacobian and residual
-        sol = jacobianResidual(Rods, conn, ana, sys, sol);%, Kt);
+        sol = jacobianResidual(Rods, conn, ana, sys, sol);
         
         % Solve for current iteration
         [sol.du, sol.dl, sol.err] = solveIteration(ana, sys, sol);
@@ -51,11 +51,11 @@ while sol.t < ana.tf
         end
         
         % Extract displacement of each rod
-        for r=1:sys.nRods; Rods(r).u = getRodLevelVector(sol.u, r, sys.ndofpr); end
-        for r=1:sys.nRods; Rods(r).Fi = getRodLevelVector(sol.FINT, r, sys.ndofpr); end
+        for r=1:sys.numRods; Rods(r).u = getRodLevelVector(sol.u, r, sys.ndofpr); end
+        for r=1:sys.numRods; Rods(r).Fi = getRodLevelVector(sol.FINT, r, sys.ndofpr); end
 
         % Update state vector for each rod
-        for r=1:sys.nRods; Rods(r).q = Rods(r).q0 + Rods(r).u; end
+        for r=1:sys.numRods; Rods(r).q = Rods(r).q0 + Rods(r).u; end
 
         % Print, check termination and advance
         fprintf("i: %d, |du|= %.6f\n", sol.i, sol.err); if sol.i == ana.maxiter; error("maxiter"); end; if sol.err <= ana.tol; break; end; sol.i = sol.i + 1;
@@ -82,10 +82,10 @@ while sol.t < ana.tf
     sol.Fip = fullVector(sol.Fi, sys.frdof, sys.ndof);
 
     % Assign for each rod
-    for r=1:sys.nRods
+    for r=1:sys.numRods
         Rods(r).Q = [Rods(r).Q, Rods(r).q]; 
         Rods(r).U = [Rods(r).U, Rods(r).u]; 
-        Rods(r).FI = [Rods(r).FI, Rods(r).Fi]; 
+        Rods(r).FI= [Rods(r).FI, Rods(r).Fi]; 
     end
 
     % Show live plot

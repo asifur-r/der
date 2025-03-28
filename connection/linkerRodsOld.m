@@ -15,7 +15,7 @@ function [linkers, connection] = linkerRodsOld(rods, linkspec)
     checkDuplicatePairs(pairs);
     
     % Number of actual rods
-    nrods = length(rods);
+    numMainRods = length(rods);
 
     % Number of pairs
     npairs = length(linkspec);
@@ -53,7 +53,7 @@ function [linkers, connection] = linkerRodsOld(rods, linkspec)
         rodBTag = linkspec(i).pair(2); rodB = rods(rodBTag);
 
         % Linker tag (updated inside loop)
-        linkTag = nrods + linkerCtr;
+        linkTag = numMainRods + linkerCtr;
 
         % Find the intersection (common) point Q of main rod A and B
         % Q would be either the first or the last node of rod A and B
