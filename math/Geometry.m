@@ -55,7 +55,7 @@ classdef (Abstract) Geometry
         % Returns points after rotating about an axis by an angle
 
             arguments
-                points(:, 3) {mustBeNumeric}
+                points (:, 3) {mustBeNumeric}
                 rotationAxis (1, 3) {mustBeNumeric}
                 rotationAngle (1, 1) {mustBeNumeric}
             end
@@ -74,7 +74,7 @@ classdef (Abstract) Geometry
         % Returns points after orienting its reference axis to the target dircetion
     
                 arguments
-                    points(:, 3) {mustBeNumeric}
+                    points (:, 3) {mustBeNumeric}
                     currentAxis (1, 3) {mustBeNumeric}
                     direction (1, 3) {mustBeNumeric}
                 end
@@ -128,7 +128,7 @@ classdef (Abstract) Geometry
         % Returns points after translating by a vector
 
             arguments
-                points(:, 3) {mustBeNumeric}
+                points (:, 3) {mustBeNumeric}
                 vec (1, 3) {mustBeNumeric}
             end
             

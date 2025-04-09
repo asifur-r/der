@@ -33,7 +33,7 @@ H = 20; % mm
 N = 35;
 
 % Number of units
-Nunits = 3;
+Nunits = 10;
 
 % Flat lengths
 a = 1; b = 9; c = 1.0;
@@ -165,7 +165,7 @@ kp = 1e7;
 
 % Get the node tags for equal dofs by expanding arch joint nodes by 5
 % Note: There are 5 nodes on each side of each joint which are same as the base
-eqDofs = expandVectorElements(archSeries.Joints(), 5);
+eqDofs = expandVector(archSeries.Joints(), 5);
 
 % Between rods
 for i = 1:length(eqDofs); ana = ana.EqualDof(1, eqDofs(i), 2, eqDofs(i), 1:3, kp, length(TS)); end
