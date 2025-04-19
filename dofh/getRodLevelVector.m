@@ -1,7 +1,7 @@
-function vec = getRodLevelVector(V, rodTag, ndofspr)
+function vec = getRodLevelVector(vec, rodTag, ndofspr)
     % Returns the rod level vector (displacement or velocity) from a full sized system level vector
 
-    % V = displacement or veloctity vector of the system
+    % vec = displacement or veloctity vector of the system
     % rodTag = an integer tag of the rod
     % ndofspr = vector containing ndof of every rod
 
@@ -18,7 +18,7 @@ function vec = getRodLevelVector(V, rodTag, ndofspr)
     % Right pointer
     q = cum(rodTag);
 
-    % Pick the sub vector between p and q from V
-    vec = V(p:q);
+    % Pick the sub vector between p and q from vec
+    vec = vec(p:q);
 
 end

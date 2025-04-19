@@ -46,14 +46,16 @@ function livePlot(Rods, sol, visual)
         % Define x, y for plot
         rodLevelDof = node2dof(d.node, d.dof);
         
-        x = Rods(d.rod).U(rodLevelDof,:);
-        y = Rods(d.rod).FI(node2dof(d.node, d.dof),:);
+        % x = Rods(d.rod).U(rodLevelDof,:);
+        % y = Rods(d.rod).FI(node2dof(d.node, d.dof),:);
+        x = [0 sol.T];
+        y = Rods(d.rod).U(rodLevelDof,:);
 
         % Plot
-        plot(x, y, '-ob');
+        plot(x, y, '-b');
         title(strcat('Rod:', num2str(d.rod), ' Node:', num2str(d.node), ' dof:', num2str(d.dof), ' Time:', num2str(sol.t) ))
-        xlabel('Disp.')
-        ylabel('Internal Force')
+        % xlabel('Disp.')
+        % ylabel('Internal Force')
         hold on
         grid on
         drawnow

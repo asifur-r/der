@@ -15,7 +15,7 @@ function mat = extractResponse(solution, variable, dofs)
     end
 
     % Get the last step from the lambda vector L
-    nsteps = length(solution.L);
+    nsteps = length(solution.T);
 
     % Number of requested displacement
     nrequest = size(dofs, 1);

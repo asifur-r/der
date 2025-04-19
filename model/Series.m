@@ -39,6 +39,10 @@ classdef Series
                     assert(numel(varargin) == 4, 'Trapezoid requires ta, tb, tc, td.');
                     [obj.params.ta, obj.params.tb, obj.params.tc, obj.params.td] = deal(varargin{:});
                     obj.getValFunc = @obj.trapezoid;
+                case 'smooth-reverse'
+                    assert(numel(varargin) == 2, 'Smooth-reverse requires ta and tb.');
+                    [obj.params.ta, obj.params.tb] = deal(varargin{:});
+                    obj.getValFunc = @obj.smoothReverse;
                 otherwise
                     error('Invalid time series type.');
             end
@@ -116,5 +120,19 @@ classdef Series
                 value = (td - t) / (td - tc);
             end
         end
+
+        function value = smoothReverse(obj, t)
+            ta = obj.params.ta;
+            tb = obj.params.tb;
+            if t <= ta
+                value = 1;
+            elseif t >= tb
+                value = 0;
+            else
+                x = (t - ta) / (tb - ta);
+                value = 1 - x^2 * (3 - 2*x);  % Reverse smoothstep
+            end
+        end
+
     end
 end

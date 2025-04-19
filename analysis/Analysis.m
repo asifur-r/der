@@ -3,24 +3,26 @@ classdef Analysis
 
     properties %(SetAccess = private, GetAccess = public)
         type        % Analysis type: 'static' or 'dynamic'
-        % lam0        % Increment for NR, or first lambda for MGDM
-        tf          % Final time t (for dynamic)
-        dt          % Time step (for dynamic)
+        tf          % Final time t
+
+        timeSteppingMode
+        dt          % Time step
+        dtMin
+        dtMax
+
         solver      % Solver type ('nr' or 'mgdm')
 
-        maxiter     % Maximum iterations
         tol         % Tolerance for convergence
+        maxResidual
+        maxIteration
 
         constraint  % Boundary specification: 'elimination' or 'penalty'
         penalty     % Penalty value (only for penalty constraint)
-        
 
         integration % 'euler' or 'newmark'
         betaN       % newmark beta parameter
 
-        damping     % Damping type: 'rayleigh' or 'vertices'
-        alpha       % Rayleigh damping parameter
-        beta        % Rayleigh damping parameter
+        damping     % Damping type: 'viscous'
         eta         % Viscous damping parameter
 
         timeSeries  % Time series array
@@ -31,7 +33,7 @@ classdef Analysis
 
     methods
         
-        function obj = Analysis(type, tf, dt)
+        function obj = Analysis(type, tf)
             % Analysis constructor
                         
             % Check analysis type
@@ -41,17 +43,56 @@ classdef Analysis
             % Initialize analysis type
             obj.type = type;
             obj.tf = tf;
-            obj.dt = dt;
 
             % Default
             obj.isParallel = false;
-
         end
+
+        function obj = TimeStep(obj, mode, dt, varargin)
+            % Configure time step settings
+            %
+            % Usage:
+            %   obj.TimeStep('constant', dt)
+            %   obj.TimeStep('adaptive', dt, dtMin, dtMax)
+        
+            assert(strcmp(mode, 'constant') || strcmp(mode, 'adaptive'), ...
+                "Supported time stepping modes are: 'constant' and 'adaptive'.");
+
+            assert(isscalar(dt) && dt > 0, 'dt must be a positive scalar.');
+        
+            obj.timeSteppingMode = mode;
+            obj.dt = dt;
+        
+            switch mode
+                case 'adaptive'
+                
+                % Expecting dtMin and dtMax as extra inputs
+                assert(numel(varargin) == 2, 'For adaptive mode, dtMin and dtMax must be provided.');
+                % dtMin = varargin{1};
+                % dtMax = varargin{2};
+        
+                % assert(isscalar(dtMin) && dtMin > 0, 'dtMin must be a positive scalar.');
+                % assert(isscalar(dtMax) && dtMax > 0, 'dtMax must be a positive scalar.');
+                % assert(dtMin <= dt && dt <= dtMax, 'dt must be between dtMin and dtMax.');
+                % assert(dtMin < dtMax, 'dtMin must be less than dtMax.');
+        
+                obj.dtMin = varargin{1};
+                obj.dtMax = varargin{2};
+
+            case 'constant'
+
+            assert(numel(varargin) == 0, 'For constant mode, dtMin and dtMax are not required.');
+
+                % Clear out adaptive stepping fields
+                obj.dtMin = [];
+                obj.dtMax = [];
+            end
+        end
+        
 
         function obj = TimeSeries(obj, seriesArray)
             % Set time series array
             obj.timeSeries = seriesArray;
-
         end
 
         function obj = Integration(obj, type, varargin)
@@ -65,7 +106,6 @@ classdef Analysis
                 assert(nargin == 3, "Newmark integration requires a beta.");
                 obj.betaN = varargin{1};
             end
-
         end
 
         function obj = Solver(obj, type)
@@ -76,11 +116,12 @@ classdef Analysis
             obj.solver = type;
         end
 
-        function obj = Convergence(obj, tol, maxiter)
+        function obj = Convergence(obj, tol, maxResidual, maxIteration)
             % Set convergence parameters
 
             obj.tol = tol;
-            obj.maxiter = maxiter;
+            obj.maxResidual = maxResidual;
+            obj.maxIteration = maxIteration;
         end
 
         function obj = Constraint(obj, type, varargin)
@@ -100,22 +141,14 @@ classdef Analysis
         function obj = Damping(obj, type, varargin)
             % Set damping parameters
 
-            assert(strcmp(type, 'rayleigh') || strcmp(type, 'vertices'), ...
-                "Supported damping types are: 'rayleigh' and 'vertices'.");
+            % assert(strcmp(type, 'rayleigh') || strcmp(type, 'viscous'), ...
+                % "Supported damping types are: 'rayleigh' and 'viscous'.");
 
+            assert(strcmp(type, 'viscous'), "Supported damping types is: 'viscous'.");
             obj.damping = type;
 
-            switch type
-                case 'rayleigh'
-                    assert(nargin == 4, "Rayleigh damping requires alpha and beta.");
-                    obj.alpha = varargin{1};
-                    obj.beta = varargin{2};
-
-                case 'vertices'
-                    assert(nargin == 3, "Vertices damping requires an eta.");
-                    obj.eta = varargin{1};
-                    
-            end
+            assert(nargin == 3, "Viscous damping requires an eta.");
+            obj.eta = varargin{1};
 
         end
 
@@ -162,7 +195,8 @@ classdef Analysis
             assert(~isempty(obj.solver), "Solver type must be set.");
             assert(~isempty(obj.tf), "tf must be set.");
             assert(~isempty(obj.dt), "dt must be set.");
-            assert(~isempty(obj.maxiter), "maxiter must be set.");
+            assert(~isempty(obj.maxResidual), "maxResidual must be set.");
+            assert(~isempty(obj.maxIteration), "maxIteration must be set.");
             assert(~isempty(obj.tol), "tol must be set.");
             assert(~isempty(obj.constraint), "constraint must be set.");
 
@@ -170,9 +204,6 @@ classdef Analysis
                 error("Penalty value is required for 'penalty' constraint.");
             end
 
-            if ~isempty(obj.damping) && strcmp(obj.damping, 'rayleigh') && (isempty(obj.alpha) || isempty(obj.beta))
-                error("alpha and beta are required for rayleigh damping.");
-            end
 
             if strcmp(obj.integration, 'newmark') && isempty(obj.betaN)
                 error("beta is required for newmark integration.");

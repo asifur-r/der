@@ -34,7 +34,7 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     J = Kt + Kcp;
     
     % Add dynamic terms to J, R and Fe if necessary
-    if strcmp(ana.type, 'dynamic'); [J, R, Fe] = applyDynamicTerms(J, R, KNP, Fe, ana, sol, sys); end
+    if strcmp(ana.type, 'dynamic'); [J, R, Fe] = applyDynamicTerms(Rods, J, R, KNP, Fe, ana, sol, sys); end
 
     % Insert in solver object
     sol.J = sparse(J); sol.R = sparse(R); sol.Fe = Fe;
@@ -72,7 +72,7 @@ function [Fcp, Kcp, Fpd] = applyConstraints(ana, sys, sol, Kt)
 
 end
 
-function [J, R, Fe] = applyDynamicTerms(J, R, Kt, Fe, ana, sol, sys)
+function [J, R, Fe] = applyDynamicTerms(Rods, J, R, Kt, Fe, ana, sol, sys)
 
     fr = sys.frdof; dt = ana.dt; betaN = ana.betaN;
 
@@ -96,14 +96,16 @@ function [J, R, Fe] = applyDynamicTerms(J, R, Kt, Fe, ana, sol, sys)
     if ~isempty(ana.damping) 
         
         % Compute rayleigh damping
-        C = rayleighDamping(M, Kt, ana.alpha, ana.beta);
-
-        % Damping force
-        Fd = C * sol.vp(fr) * dt;
+        % C = rayleighDamping(M, Kt, ana.alpha, ana.beta);
+        % Fd = -C * sol.vp(fr);
+        
+        % Viscous damping force
+        Fd = -ana.eta * sol.vp(fr); % Need to multiply with voronoi length to be extact
+        % check if sol.v or sol.vp
 
         % Add damping terms to J, R and Fe
-        J = J + C * dt;
-        R = R + Fd * dt; % Check if its good
+        % J = J + C * dt;
+        R = R + Fd * dt^2;
         Fe = Fe + Fd;
 
     end

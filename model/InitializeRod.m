@@ -55,7 +55,6 @@ function R = InitializeRod(points, sec, mat)
     % Stores all iterations (matrices)
     R.Q = R.q0;
     R.U = R.u;
-    R.V = R.v;
 
     % Stores internal forces
     R.Fi = zeros(R.ndof, 1);

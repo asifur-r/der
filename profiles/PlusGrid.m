@@ -69,6 +69,10 @@ classdef PlusGrid
 
         end
 
+        function archLines = ArchLines(obj)
+            archLines = (1:obj.m+obj.n) + (obj.m+obj.n+2);
+        end
+
         function [lines, nodes] = ArchPeaks(obj, direction)
             % Returns arch peak nodes on the lines defined by the direction
 

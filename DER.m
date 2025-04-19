@@ -9,17 +9,22 @@ ana.Validate();
 % Contains both regular and linker ders
 Rods = [rods, linkers];
 
-% Number of actual rod and linkers
-numRods = length(rods); numLinkers = length(linkers);
+% Number of linkers
+numLinkers = length(linkers);
 
 % Initialize solver stuct
 sol = solver(Rods);
 
 while sol.t < ana.tf
-
-    % Update time step
-    sol.t = sol.t + ana.dt; fprintf("Time: %.2f ------------ \n", sol.t)
     
+    clc
+    
+    % Save current state in case convergence fails
+    backup = struct(); backup.sol = sol; backup.Rods = Rods;
+    
+    % Update time step
+    sol.t = sol.t + ana.dt; printTime(sol.t, ana.tf, ana.dt);
+
     % Update time dependant properties
     [Rods, sol] = assignTimeDependants(Rods, ana, sol);
 
@@ -30,7 +35,7 @@ while sol.t < ana.tf
     sol.u = sol.up;
 
     sol.i = 1;
-    while sol.i <= ana.maxiter
+    while sol.i <= ana.maxIteration
 
         % Compute jacobian and residual
         sol = jacobianResidual(Rods, conn, ana, sys, sol);
@@ -50,21 +55,41 @@ while sol.t < ana.tf
                 sol.u = sol.u + sol.du;
         end
         
-        % Extract displacement of each rod
-        for r=1:sys.numRods; Rods(r).u = getRodLevelVector(sol.u, r, sys.ndofpr); end
-        for r=1:sys.numRods; Rods(r).Fi = getRodLevelVector(sol.FINT, r, sys.ndofpr); end
-
-        % Update state vector for each rod
-        for r=1:sys.numRods; Rods(r).q = Rods(r).q0 + Rods(r).u; end
-
-        % Print, check termination and advance
-        fprintf("i: %d, |du|= %.6f\n", sol.i, sol.err); if sol.i == ana.maxiter; error("maxiter"); end; if sol.err <= ana.tol; break; end; sol.i = sol.i + 1;
-
-        % Print monitor variables for each iteration
-        if ~isempty(monitor) & ~isempty(monitor.iter); eval(monitor.iter); end
+        % Extract displacement, forces and update state vector of each rod
+        for r=1:sys.numRods
+            Rods(r).u = getRodLevelVector(sol.u, r, sys.ndofpr);
+            Rods(r).Fi = getRodLevelVector(sol.FINT, r, sys.ndofpr);
+            Rods(r).q = Rods(r).q0 + Rods(r).u;
+        end
         
+        % Print
+        fprintf("i: %d, |du|= %.6f\n", sol.i, sol.err);
+        if ~isempty(monitor) & ~isempty(monitor.iter); eval(monitor.iter); end
+
+        % Check termination
+        if sol.err <= ana.tol; isConverged = true; break; end
+        if sol.i == ana.maxIteration || sol.err > ana.maxResidual; isConverged = false; break; end
+
+        % Advance iteration
+        sol.i = sol.i + 1;
+
     end
     
+    % Break outer while loop if constatnt time stepping fails
+    if strcmp(ana.timeSteppingMode, 'constant') && isConverged == false; break; end
+
+    % For adaptive time stepping, try again by increasing or decreasing dt
+    if strcmp(ana.timeSteppingMode, 'adaptive')
+    
+        % Decrease dt if fails, and restore last converged state
+        if isConverged == false; sol = backup.sol; Rods = backup.Rods; ana.dt = ana.dt * 0.90; continue; end
+
+        % Increase dt if converges fast
+        if isConverged == true && sol.i < 10; dtNew = ana.dt * 1.10; if dtNew < ana.dtMax; ana.dt = dtNew; end; end
+    end
+
+    % Reaches here for converged steps only
+
     % Update velocity
     if strcmp(ana.integration, 'euler')
         sol.v = (sol.u - sol.up) / ana.dt;
@@ -85,7 +110,7 @@ while sol.t < ana.tf
     for r=1:sys.numRods
         Rods(r).Q = [Rods(r).Q, Rods(r).q]; 
         Rods(r).U = [Rods(r).U, Rods(r).u]; 
-        Rods(r).FI= [Rods(r).FI, Rods(r).Fi]; 
+        Rods(r).FI= [Rods(r).FI,Rods(r).Fi];
     end
 
     % Show live plot
@@ -96,17 +121,51 @@ while sol.t < ana.tf
 
     % Print monitor variables for each step
     if ~isempty(monitor) & ~isempty(monitor.step); eval(monitor.step); end
- 
+
+    % Update time vector
+    sol.T = [sol.T sol.t];
+
 end
 
-% Plot final results
-if ~isempty(visual); livePlot(Rods, sol, visual); end
+solution = makeSolution(Rods, sys, sol);
 
-% Prepare solution struct
-solution = struct();
-solution.ndofspr = sys.ndofpr;
-solution.Qs = arrayfun(@(r) r.Q, Rods, 'UniformOutput', false);
-solution.Us = arrayfun(@(r) r.U, Rods, 'UniformOutput', false);
-solution.FIs = arrayfun(@(r) r.FI, Rods, 'UniformOutput', false);
+end
+
+function S = makeSolution(Rods, sys, sol)
+
+    % Prepare solution struct
+    S = struct();
+    S.ndofspr = sys.ndofpr;
+    S.T = sol.T;
+    S.Qs = arrayfun(@(r) r.Q, Rods, 'UniformOutput', false);
+    S.Us = arrayfun(@(r) r.U, Rods, 'UniformOutput', false);
+    S.FIs = arrayfun(@(r) r.FI, Rods, 'UniformOutput', false);
+
+end
+
+function printTime(currentTime, finalTime, timeStep)
+    % Prints the current time, time step, and a text-based progress bar
+    % in the console.
+
+    fprintf("Time: %.4f s, dt: %.4f s, ", currentTime, timeStep);
+
+    barWidth = 50; % Width of the progress bar in characters
+
+    percentComplete = (currentTime / finalTime) * 100;
+
+    fullBlockChar = char(9608);     % Unicode for a full block character
+    emptyBlockChar = char(9617);    % Unicode for a light shade block character
+
+    numBlocksFilled = floor((percentComplete / 100) * barWidth);
+    numBlocksEmpty = barWidth - numBlocksFilled;
+
+    progressBar = ['[' ...
+                   repmat(fullBlockChar, 1, numBlocksFilled) ...
+                   repmat(emptyBlockChar, 1, numBlocksEmpty) ...
+                   ']'];
+
+    fprintf('Progress: %s %5.2f%%', progressBar, percentComplete);
+
+    fprintf('\n');
 
 end

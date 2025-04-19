@@ -2,14 +2,14 @@ function [Fi, Kt] = stackForceStiffness(Rods, ana, sys)
     % Returns system internal Fi and Kt just by stacking
 
     % Filter out some growing fields
-    Rods = rmfield(Rods, {'Q', 'U', 'V', 'FI'});
-
-    % Store force vectors and stiffness matrices of all rods
-    % [fi, kt] = arrayfun(@(r) allForceStiffness(r), Rods, 'UniformOutput', false);
- 
-    [fi, kt, tser]  = serialProcess(Rods, sys);
-    % [fi, kt, tpar1] = parallelProcess1(Rods, sys);
-    % [fi, kt, tpar2] = parallelProcess2(Rods, sys);
+    Rods = rmfield(Rods, {'Q', 'U', 'FI'});
+    
+    if ana.isParallel == true
+        % [fi, kt, tpar1] = parallelProcess1(Rods, sys);
+        [fi, kt, tpar2] = parallelProcess2(Rods, sys);
+    else
+        [fi, kt, tser]  = serialProcess(Rods, sys);
+    end
 
     % Vertically stack f vectors
     Fi = vertcat(fi{:});
@@ -18,7 +18,7 @@ function [Fi, Kt] = stackForceStiffness(Rods, ana, sys)
     Kt = blkdiag(kt{:});
 
     % Write to file
-    % filename = 'timing.txt'; fid = fopen(filename, 'a'); fprintf(fid, '%.3f, %.3f, %.3f\n', tser, 10, tpar2); fclose(fid);
+    % filename = 'timing.txt'; fid = fopen(filename, 'a'); fprintf(fid, '%.3f, %.3f, %.3f\n', tser, tpar1, tpar2); fclose(fid);
 
 end
 
@@ -31,8 +31,11 @@ function [fi, kt, t] = serialProcess(Rods, sys)
     kt = cell(1, numRods);
 
     % Serial process
-    tic; for i = 1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end; t = toc;
-    
+    T = tic; for i = 1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end; t = toc(T);
+
+    % Alternative
+    % [fi, kt] = arrayfun(@(r) allForceStiffness(r), Rods, 'UniformOutput', false);
+
 end
 
 function [fi, kt, t] = parallelProcess1(Rods, sys)
@@ -45,21 +48,22 @@ function [fi, kt, t] = parallelProcess1(Rods, sys)
     kt = cell(1, numRods);
     
     % Serial process of linkers
-    tic; for i = numMain+1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end;
+    T = tic; 
+    for i = numMain+1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end
 
     % Parallel process of main rods
     
     parfor i = 1:numMain
         % Open file and start time
-        fid = fopen('workload.txt', 'a'); workerid = getCurrentTask().ID; tstart = tic;
+        % fid = fopen('workload.txt', 'a'); workerid = getCurrentTask().ID; tstart = tic;
         
         % Process rods and assign f and k
         [f, k] = allForceStiffness(Rods(i)); fi{i} = f; kt{i} = k;
 
         % Stop timer, and write to file
-        tworker = toc(tstart); fprintf(fid, '%d, %.3f\n', workerid, tworker); fclose(fid);
+        % tworker = toc(tstart); fprintf(fid, '%d, %.3f\n', workerid, tworker); fclose(fid);
     end
-    t = toc;
+    t = toc(T);
 
 end
 
@@ -74,18 +78,14 @@ function [fi, kt, t] = parallelProcess2(Rods, sys)
     fevalOut = cell(1, numRods);
 
     % Serial process of linkers
-    tic; for i = numMain+1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end
+    T = tic; 
+    for i = numMain+1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end
     
     % Parallel process of main rods
-    tic
-    for i = 1:numMain
-        fevalOut{i} = parfeval(@allForceStiffness, 2, Rods(i));
-    end
+    for i = 1:numMain; fevalOut{i} = parfeval(@allForceStiffness, 2, Rods(i)); end
     
     % Collect results as they finish
-    for i = 1:numMain
-        [fi{i}, kt{i}] = fetchOutputs(fevalOut{i});
-    end
-    t = toc;
+    for i = 1:numMain; [fi{i}, kt{i}] = fetchOutputs(fevalOut{i}); end
+    t = toc(T);
 
 end

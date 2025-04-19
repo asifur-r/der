@@ -36,7 +36,7 @@ classdef Sinusoid
             % Generates the points along the half sinusoid
 
             % Number of points in flat region before sinusoid
-            Nb = 5;
+            Nb = 3;
 
             % Remaining nodes for the sinusoid
             Ns = obj.N - Nb - 1;
