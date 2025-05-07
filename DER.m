@@ -23,7 +23,7 @@ while sol.t < ana.tf
     backup = struct(); backup.sol = sol; backup.Rods = Rods;
     
     % Update time step
-    sol.t = sol.t + ana.dt; printTime(sol.t, ana.tf, ana.dt);
+    sol.t = sol.t + ana.dt; printTimeStats(sol.t, ana.tf, ana.dt);
 
     % Update time dependant properties
     [Rods, sol] = assignTimeDependants(Rods, ana, sol);
@@ -143,29 +143,3 @@ function S = makeSolution(Rods, sys, sol)
 
 end
 
-function printTime(currentTime, finalTime, timeStep)
-    % Prints the current time, time step, and a text-based progress bar
-    % in the console.
-
-    fprintf("Time: %.4f s, dt: %.4f s, ", currentTime, timeStep);
-
-    barWidth = 50; % Width of the progress bar in characters
-
-    percentComplete = (currentTime / finalTime) * 100;
-
-    fullBlockChar = char(9608);     % Unicode for a full block character
-    emptyBlockChar = char(9617);    % Unicode for a light shade block character
-
-    numBlocksFilled = floor((percentComplete / 100) * barWidth);
-    numBlocksEmpty = barWidth - numBlocksFilled;
-
-    progressBar = ['[' ...
-                   repmat(fullBlockChar, 1, numBlocksFilled) ...
-                   repmat(emptyBlockChar, 1, numBlocksEmpty) ...
-                   ']'];
-
-    fprintf('Progress: %s %5.2f%%', progressBar, percentComplete);
-
-    fprintf('\n');
-
-end
