@@ -16,6 +16,10 @@ classdef Record
             % Initializes recording settings.
 
             if ~ischar(folderPath); error('Folder path must be a string.'); end
+            
+            % Create directory if doesn't exit
+            if ~exist(folderPath, 'dir'); mkdir(folderPath); end
+
             obj.folder = folderPath;
 
             % Initialize properties with default values

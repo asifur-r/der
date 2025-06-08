@@ -23,7 +23,8 @@ function livePlot(Rods, sol, visual)
         % Select subplot
         subplot(1, nplot, [1 2])
 
-        for r = 1:nrod; plotRefAndDefGeom(Rods(r).q0, Rods(r).Q(:,end), r); end 
+        % for r = 1:nrod; plotRefAndDefGeom(Rods(r).q0, Rods(r).Q(:,end), r); end 
+        for r = 1:nrod; plotRefAndDefGeom([], Rods(r).Q(:,end), r); end 
 
         if visual.triad == true; for r = 1:nrod; plotRotation(Rods(r).Q(:, end)); end; end
         if visual.nodetags == true; for r = 1:nrod; plotNodeTags(Rods(r).q0); end; end
@@ -46,16 +47,27 @@ function livePlot(Rods, sol, visual)
         % Define x, y for plot
         rodLevelDof = node2dof(d.node, d.dof);
         
-        % x = Rods(d.rod).U(rodLevelDof,:);
-        % y = Rods(d.rod).FI(node2dof(d.node, d.dof),:);
-        x = [0 sol.T];
-        y = Rods(d.rod).U(rodLevelDof,:);
+        switch visual.variable
 
+            case 'forcedisp'
+                x = Rods(d.rod).U(rodLevelDof,:);
+                y = Rods(d.rod).FI(rodLevelDof,:);
+                xlabel('Disp.')
+                ylabel('Internal Force')
+
+            case 'timehistory'
+                x = [0 sol.T];
+                y = Rods(d.rod).U(rodLevelDof,:);
+                xlabel('Time (s)')
+                ylabel('Disp.')
+
+            otherwise; error("Visual property not specified correctly")
+                
+        end
+        
         % Plot
-        plot(x, y, '-b');
+        plot(x, y, '-ob');
         title(strcat('Rod:', num2str(d.rod), ' Node:', num2str(d.node), ' dof:', num2str(d.dof), ' Time:', num2str(sol.t) ))
-        % xlabel('Disp.')
-        % ylabel('Internal Force')
         hold on
         grid on
         drawnow

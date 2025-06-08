@@ -1,22 +1,30 @@
 clc; clear all; clf; %close all
 
 % Sinsudoidal arch with compliant base
-% Tip displacement applied through sawtooth ramp, then removed
+% Apex displacement is applied using sawtooth ramp, then removed
 % One pinned boundary changed to roller after second equilibrium
 
 % ==================================================
 % SETUP AND PATHS
 % ==================================================
-
-% Path to DER folder
 derPath = '../'; addpath(genpath(derPath))
 
 % ==================================================    
 % MATERIAL AND SECTION PROPERTIES
 % ==================================================
 
-%sec = Section(width, height);
-sec = Section(5, 0.5001);
+% Strip width
+w = 5;
+
+% Strip height
+h = 0.50;
+
+% Torsional stiffness modifier
+Jmod = 1.0;
+
+%sec = Section(width, height, Jmod);
+sec1 = Section(w, h, Jmod);
+sec2 = Section(2*w, h, Jmod);
 
 %mat = Material(E, nu, rho);
 mat = Material(2.2e3, 0.38, 1.2e-6);
@@ -26,68 +34,76 @@ mat = Material(2.2e3, 0.38, 1.2e-6);
 % ==================================================
 
 % Base length
-L = 90; % mm
+L = 99; % mm
 
 % Sinusoid height
-H = 25; % mm
+H = 19; % mm
 
 % Number of vertices (must be odd)
 N = 35;
 
-% Flat lengths
-a = 1; b = 4; c = 1;
+% Sinusoid flat lengths
+a = 3; % At ends
+b = 7; % Before sinusoid
+c = 2; % At center (halfwidth)
+
+% Generate rod coordinates
+arch = Profile.FullSinusoid(L, H, N, a, b, c);
+base = [arch(:, 1) zeros(N, 2)];
 
 % Generate rods
-arch = Profile.FullSinusoid(L, H, N, a, b, c);
-base = [arch(:, 1) zeros(N,2)];
-
-rods(1) = InitializeRod(arch, sec, mat);
-rods(2) = InitializeRod(base, sec, mat);
+rods(1) = InitializeRod(arch, sec1, mat);
+rods(2) = InitializeRod(base, sec2, mat);
 
 % Optional: Check geometry by plotting
-for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
+% for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
 
 % ==================================================
 % TIME PARAMETERS
 % ==================================================
 
-% Final time (s)
-tfinal = 15;
-
 % Time increment (s)
-dt = 0.2;
+dt = 0.1;
 
-% Prescribed displacement (mm)
-D = - H * 2.1;
+% Final time (s)
+tfinal = 10;
 
 % Time series array
-TS = [Series('constant', 1),...
-      Series('sawtooth', D, 0, 8),...
-      Series('rectangle', 1, 0, 10),...
-      Series('rectangle', 1, 0, 2)];
+ts = [Series('constant', 1) , ...       % For constant supports
+      Series('sawtooth', 1, 0, 8), ...  % For prescribed displacements
+      Series('rectangle', 1, 0, 8)];    % For EqualDof release of the apex nodes
+
+% Optional: Check time series by plotting
+% plotTimeSeries(timeSeriesArray, tstart, tfinal, dt, tnow)
+% plotTimeSeries(ts, 0, tfinal, dt, [])
 
 % ==================================================
 % RESTRAINT ASSIGNMENT
 % ==================================================
 
-cnode = ceil(N/2) - 1;
-dispNode = cnode - 1;
+% center node
+cnode = ceil(N/2);
 
-% Assign restraints
-rods(1) = Restraint(rods(1), 1, 1:3, 1);
-rods(1) = Restraint(rods(1), N, 2:3, 1);
-rods(1) = Restraint(rods(1), N, 1, 3);
+% Displacement node (the center node in the arch)
+dispNode = cnode;
 
-% ==================================================
-% LOAD ASSIGNMENT
-% ==================================================
-
-% Assign loads
-rods(1) = Displacement(rods(1), dispNode, 3, 2);
-% rods(2) = Displacement(rods(2), 2, 3, 2);
+% Restraint(rods, node, dofs, val, timeseries);
+rods(2) = Restraint(rods(2), 2, 1:3, 1, 1);
+rods(2) = Restraint(rods(2), N-2, 2:3, 1, 1);
 
 % ==================================================
-% ROD PAIRS AND LINKER SPECS
+% LOAD OR DISPLACEMENT ASSIGNMENT
+% ==================================================
+
+% Prescribed displacement (mm)
+D = - H * 2.1;
+
+% Displacement(rods, node, dofs, val, timeseries);
+rods(1) = Displacement(rods(1), dispNode, 3, D, 2);
+
+
+% ==================================================
+% ROD PAIRING AND LINKER SPECIFICATION
 % ==================================================
 
 link = [];
@@ -103,7 +119,7 @@ liveDofs = [1 dispNode 3];
 vis = Visual('dofs', liveDofs, 'deformed', true);
 
 % Monitor
-mon = []; %Monitor('iter', perIter, 'step', perStep);
+mon = []; % Monitor('iter', perIter, 'step', perStep);
 
 % Recorder
 rec = [];
@@ -113,30 +129,36 @@ rec = [];
 % ==================================================
 
 % Analysis object
-ana = Analysis('static', tfinal, dt);
-% ana = Analysis('dynamic', tfinal, dt);
+% ana = Analysis('static', tfinal);
+ana = Analysis('dynamic', tfinal);
+ana = ana.TimeStep('constant', dt);
+% ana = ana.TimeStep('adaptive', dt, dtMin, dtMax);
 ana = ana.Integration('euler');
 % ana = ana.Integration('newmark', 0.75);
 ana = ana.Solver('nr');
-ana = ana.Convergence(1e-4, 100);
+ana = ana.Convergence(1e-5, 1000, 100); % (tol, maxRes, maxIter)
 ana = ana.Constraint('elimination');
 % ana = ana.Constraint('penalty', 1e9);
-% ana = ana.Damping('rayleigh', 0.01, 0.0001);
-ana = ana.TimeSeries(TS);
+% ana = ana.Damping('viscous', 1e-4);
+ana = ana.TimeSeries(ts);
+% ana = ana.Parallel(true);
 
-% Equal dof constraint
-kp = 1e7;
+% ==================================================
+% EQUAL DOFS SPECIFICATIONS
+% ==================================================
+% EqualDof(masterRod, masterNode, slaveRod, slaveNode, dofs, penalty, timeSeriesTag)
 
-% EqualDof(obj, masterRod, masterNode, slaveRod, slaveNode, dofs, penalty)
+% Equal dof penalty
+kp = 5e1;
 
-% Arch tops (z constraint)
-ana = ana.EqualDof(1, cnode-1, 1, cnode, 3, kp, 4);
-ana = ana.EqualDof(1, cnode-1, 1, cnode+1, 3, kp, 4);
+% Constraints center 3 nodes of arch apex during applied displacements
+ana = ana.EqualDof(1, cnode-1, 1, cnode,   3, kp, 3);
+ana = ana.EqualDof(1, cnode-1, 1, cnode+1, 3, kp, 3);
 
-% Between rods
-for i = 2:6
-    ana = ana.EqualDof(1, i, 2, i, 1:3, kp, 1);
-    ana = ana.EqualDof(1, N+1-i, 2, N+1-i, 1:3, kp, 1);
+% Binds arch rod and base rod with stiff springs
+for i = 1:3
+    ana = ana.EqualDof(1, i,     2, i,     1:3, kp, 1); % For left end nodes
+    ana = ana.EqualDof(1, N+1-i, 2, N+1-i, 1:3, kp, 1); % For right end nodes
 end
 
 % ==================================================

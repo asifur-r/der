@@ -1,4 +1,4 @@
-function [EA, GJ, EIx, EIy] = rigidityVectors(nele, h, w, E, nu)
+function [EA, GJ, EIx, EIy] = rigidityVectors(nele, h, w, Jmod, E, nu)
 
     % nele = number of elements
     % h  = height
@@ -17,9 +17,6 @@ function [EA, GJ, EIx, EIy] = rigidityVectors(nele, h, w, E, nu)
     % BENDING
 
     % Moment of Inertia
-    % Ix = wV .* hV.^3 / 12;
-    % Iy = hV .* wV.^3 / 12;
-
     Ix = hV .* wV.^3 / 12;
     Iy = wV .* hV.^3 / 12;
 
@@ -36,7 +33,8 @@ function [EA, GJ, EIx, EIy] = rigidityVectors(nele, h, w, E, nu)
     AV = hV .* wV;
 
     % Equivalent moment of inertias at vertices
-    J = AV .* (hV.^2 + wV.^2) / 12;
+    % J = AV .* (hV.^2 + wV.^2) / 12;
+    J = AV .* (hV.^2 + wV.^2) / 12 * Jmod;
 
     % Torsional rigidity
     GJ  = G * J;
@@ -49,7 +47,7 @@ function [EA, GJ, EIx, EIy] = rigidityVectors(nele, h, w, E, nu)
     % Axial rigidity
     EA  = E * A;
 
-    % % Makes rigidity unit
+    % % Makes rigidities unit
     % EA  = ones(nele, 1);
     % EIx = ones(nele+1, 1);
     % EIy = ones(nele+1, 1);

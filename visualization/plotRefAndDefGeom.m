@@ -10,14 +10,18 @@ function plotRefAndDefGeom(qi, qf, r)
 
     if size(pti, 1) ~= 3 % Assumes as Regular rod
         
-        % x = [pti(:,1)]; y = [pti(:,2)]; z = [pti(:,3)];
-        % plot3(x, y, z, '-ob', 'MarkerSize', markersize);
-        % scatter3(x, y, z, markersize, 'b')
+        if ~isempty(qi)
+            x = [pti(:,1)]; y = [pti(:,2)]; z = [pti(:,3)];
+            % plot3(x, y, z, '-ob', 'MarkerSize', markersize);
+            scatter3(x, y, z, markersize, 'b')
+        end
         
-        x = [ptf(:,1)]; y = [ptf(:,2)]; z = [ptf(:,3)];
-        % plot3(x, y, z, '-ob', 'MarkerSize', markersize);
-        scatter3(x, y, z, markersize, 'b')
-
+        if ~isempty(qf)
+            x = [ptf(:,1)]; y = [ptf(:,2)]; z = [ptf(:,3)];
+            % plot3(x, y, z, '-ob', 'MarkerSize', markersize);
+            scatter3(x, y, z, markersize, 'b')
+        end
+        
         hold on
         
     else % Linker rod
@@ -29,7 +33,9 @@ function plotRefAndDefGeom(qi, qf, r)
     end
 
     axis equal
-    % view([45 45]) % XZ view
+    % view([45 45])
+    % view([0 0])
+    % zlim([-30 30])
 
     % plotRodTags(qi, r);
     % plotNodeTags(qi);

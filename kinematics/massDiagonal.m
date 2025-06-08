@@ -32,5 +32,4 @@ function mdiag = massDiagonal(nele, enormbar, h, w, rho)
     % Drop the last NaN
     mdiag(end) = [];
 
-
 end

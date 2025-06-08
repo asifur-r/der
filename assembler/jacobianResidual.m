@@ -75,7 +75,7 @@ end
 function [J, R, Fe] = applyDynamicTerms(J, R, Fe, ana, sol, sys)
 
     fr = sys.frdof; dt = ana.dt; betaN = ana.betaN;
-
+    
     % Mass matrix
     M = massMatrixSPARSE(sol.Mdiag); M = M(fr, fr);
 

@@ -1,6 +1,6 @@
 classdef Series
     properties
-        type    % 'constant', 'linear', 'rectangle', 'sawtooth', 'triangle', 'trapezoid'
+        type    % 'constant', 'linear', 'rectangle', 'sawtooth', 'triangle', 'trapezoid', smooth-reverse', 'sinusoid'
         value   % Peak value
         params  % Structure to hold ta, tb, tc, td
     end
@@ -19,30 +19,42 @@ classdef Series
                 case 'constant'
                     assert(obj.value >= 0, "Value must be positive.");
                     obj.getValFunc = @obj.constant;
+
                 case 'linear'
                     assert(numel(varargin) == 2, 'Linear requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
                     obj.getValFunc = @obj.linear;
+
                 case 'rectangle'
                     assert(numel(varargin) == 2, 'Rectangle requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
                     obj.getValFunc = @obj.rectangle;
+
                 case 'sawtooth'
                     assert(numel(varargin) == 2, 'Sawtooth requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
                     obj.getValFunc = @obj.sawtooth;
+
                 case 'triangle'
                     assert(numel(varargin) == 3, 'Triangle requires ta, tb, tc.');
                     [obj.params.ta, obj.params.tb, obj.params.tc] = deal(varargin{:});
                     obj.getValFunc = @obj.triangle;
+
                 case 'trapezoid'
                     assert(numel(varargin) == 4, 'Trapezoid requires ta, tb, tc, td.');
                     [obj.params.ta, obj.params.tb, obj.params.tc, obj.params.td] = deal(varargin{:});
                     obj.getValFunc = @obj.trapezoid;
+
                 case 'smooth-reverse'
                     assert(numel(varargin) == 2, 'Smooth-reverse requires ta and tb.');
                     [obj.params.ta, obj.params.tb] = deal(varargin{:});
                     obj.getValFunc = @obj.smoothReverse;
+
+                case 'sinusoid'
+                    assert(numel(varargin) == 4, 'Sinusoid requires ta, tb, p');
+                    [obj.params.ta, obj.params.tb, obj.params.p, obj.params.s] = deal(varargin{:});
+                    obj.getValFunc = @obj.sinusoid;
+                
                 otherwise
                     error('Invalid time series type.');
             end
@@ -131,6 +143,19 @@ classdef Series
             else
                 x = (t - ta) / (tb - ta);
                 value = 1 - x^2 * (3 - 2*x);  % Reverse smoothstep
+            end
+        end
+
+        function value = sinusoid(obj, t)
+            ta = obj.params.ta;
+            tb = obj.params.tb;
+            p = obj.params.p;
+            s = obj.params.s;
+
+            if t < ta || t > tb
+                value = 0;
+            else
+                value = sin(2 * pi * (t - ta) / p + s);
             end
         end
 

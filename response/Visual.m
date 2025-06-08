@@ -6,6 +6,7 @@ classdef Visual
         triad       % For triads in on the deformed shape
         nodetags    % For node tags
         dofs        % Plot dofs matrix
+        variable    % 'forcedisp' or 'timehistory'
 
     end
 
@@ -19,6 +20,7 @@ classdef Visual
             obj.triad = false;
             obj.nodetags = false;
             obj.dofs = [];
+            obj.variable = 'forcedisp';
             
             % Number of arguments
             numArgs = length(varargin);
@@ -37,6 +39,10 @@ classdef Visual
                     case 'triad', obj.triad = val;
                     case 'node', obj.nodetags = val;
                     case 'dofs', obj.dofs = processDofs(val);
+
+                    case 'variable'
+                        assert(strcmp(val, 'forcedisp') || strcmp(val, 'timehistory'), "Visual property 'variable' must be either 'forcedisp' or 'timehistory'")
+                        obj.variable = val;
 
                     otherwise, error(['Unknown key: ', key]);
                 end

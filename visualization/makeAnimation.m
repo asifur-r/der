@@ -11,9 +11,10 @@ function makeAnimation(S, tstepStart, tstepEnd, tstepSkip, isMovie)
     % Get final step
     % lastStep = size(S.Qs{1},2);
 
-    % Generate and write frames    
+    % Generate and write frames
     for i=tstepStart:tstepSkip:tstepEnd
-        for r=1:length(S.Qs); plotRefAndDefGeom(S.Qs{r}(:,1), S.Qs{r}(:,i), r); end
+        % for r=1:length(S.Qs); plotRefAndDefGeom(S.Qs{r}(:,1), S.Qs{r}(:,i), r); end
+        for r=1:length(S.Qs); plotRefAndDefGeom([], S.Qs{r}(:,i), r); end
         title(sprintf('Time = %.5f s, Step = %d', S.T(i), i))
         pause(0.1)
         frame = getframe(gcf);

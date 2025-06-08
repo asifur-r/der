@@ -67,25 +67,62 @@ function [fi, kt, t] = parallelProcess1(Rods, sys)
 
 end
 
-function [fi, kt, t] = parallelProcess2(Rods, sys)
+% function [fi, kt, t] = parallelProcess2(Rods, sys)
     
+%     numRods = sys.numRods;
+%     numMain = sys.numMainRods;
+    
+%     % Output storage
+%     fi = cell(1, numRods);
+%     kt = cell(1, numRods);
+%     fevalOut = cell(1, numRods);
+
+%     % Serial process of linkers
+%     T = tic; 
+%     for i = numMain+1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end
+    
+%     % Parallel process of main rods
+%     for i = 1:numMain; fevalOut{i} = parfeval(@allForceStiffness, 2, Rods(i)); end
+    
+%     % Collect results as they finish
+%     for i = 1:numMain; [fi{i}, kt{i}] = fetchOutputs(fevalOut{i}); end
+%     t = toc(T);
+
+% end
+
+function [fi, kt, t] = parallelProcess2(Rods, sys)
+
     numRods = sys.numRods;
     numMain = sys.numMainRods;
-    
-    % Output storage
+
     fi = cell(1, numRods);
     kt = cell(1, numRods);
-    fevalOut = cell(1, numRods);
 
-    % Serial process of linkers
-    T = tic; 
-    for i = numMain+1:numRods; [fi{i}, kt{i}] = allForceStiffness(Rods(i)); end
-    
-    % Parallel process of main rods
-    for i = 1:numMain; fevalOut{i} = parfeval(@allForceStiffness, 2, Rods(i)); end
-    
-    % Collect results as they finish
-    for i = 1:numMain; [fi{i}, kt{i}] = fetchOutputs(fevalOut{i}); end
+    % --- Serial process of linkers
+    T = tic;
+    for i = numMain+1:numRods
+        [fi{i}, kt{i}] = allForceStiffness(Rods(i));
+    end
+
+    % --- Launch parfeval tasks
+    futures = parallel.FevalFuture.empty(numMain, 0);
+    futureIdx = zeros(1, numMain);  % Map from future index to Rods index
+
+    for i = 1:numMain
+        futures(i) = parfeval(@allForceStiffness, 2, Rods(i));
+        futureIdx(i) = i; % Track which Rod this corresponds to
+    end
+
+    % --- Collect results
+    completed = 0;
+    while completed < numMain
+        [idx, f, k] = fetchNext(futures);   % idx is index into futures array
+        i = futureIdx(idx);                 % map back to original rod index
+        fi{i} = f;
+        kt{i} = k;
+        completed = completed + 1;
+    end
+
     t = toc(T);
-
 end
+
