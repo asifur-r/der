@@ -56,6 +56,8 @@ classdef TimesArray
 
         function base = Base(obj); base = obj.baseGrid; end
 
+        function val = CountLines(obj); val = obj.baseGrid.CountLines() + 2*obj.m*obj.n; end
+
         function [lines, nodes] = Peaks(obj, direction)
             % Returns arch peak nodes on the lines defined by the direction
 

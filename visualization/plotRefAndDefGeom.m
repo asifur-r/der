@@ -35,8 +35,8 @@ function plotRefAndDefGeom(qi, qf, r)
     axis equal
     % view([45 45])
     % view([0 0])
-    % zlim([-30 30])
-
+    % zlim([-50 50])
+    % xlim([0 130])
     % plotRodTags(qi, r);
     % plotNodeTags(qi);
 

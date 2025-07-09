@@ -47,7 +47,7 @@ classdef SquareGrid
 
             % All base lines
             allLines = 1:outerLines(end);
-
+  
             % Inner base lines
             innerLines = setdiff(allLines, outerLines);
 

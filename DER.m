@@ -109,8 +109,8 @@ while sol.t < ana.tf
     % Assign for each rod
     for r=1:sys.numRods
         Rods(r).Q = [Rods(r).Q, Rods(r).q]; 
-        Rods(r).U = [Rods(r).U, Rods(r).u]; 
-        Rods(r).FI= [Rods(r).FI,Rods(r).Fi];
+        % Rods(r).U = [Rods(r).U, Rods(r).u]; 
+        % Rods(r).FI= [Rods(r).FI,Rods(r).Fi];
     end
 
     % Show live plot

@@ -14,12 +14,12 @@ end
 
 function recordResponse(variable, rec, Rods, ana, sol)
     % Generic function to record responses (displacements or forces).
-
+    
     % Check for first time step
-    if sol.t ~= ana.dt
-        permission = 'a';  % Append for other time steps
-    else
+    if isscalar(sol.T)
         permission = 'w';  % Create new file if first time step
+    else
+        permission = 'a';  % Append for other time steps
     end
 
     % Pick the right file name

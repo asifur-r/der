@@ -24,7 +24,11 @@ function livePlot(Rods, sol, visual)
         subplot(1, nplot, [1 2])
 
         % for r = 1:nrod; plotRefAndDefGeom(Rods(r).q0, Rods(r).Q(:,end), r); end 
-        for r = 1:nrod; plotRefAndDefGeom([], Rods(r).Q(:,end), r); end 
+        % for r = 1:nrod; plotRefAndDefGeom([], Rods(r).Q(:,end), r); end 
+        
+        S.Qs = arrayfun(@(r) r.Q, Rods, 'UniformOutput', false);
+        
+        fastPlot(S, size(S.Qs{1}, 2));
 
         if visual.triad == true; for r = 1:nrod; plotRotation(Rods(r).Q(:, end)); end; end
         if visual.nodetags == true; for r = 1:nrod; plotNodeTags(Rods(r).q0); end; end

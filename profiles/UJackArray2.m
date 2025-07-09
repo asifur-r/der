@@ -1,4 +1,4 @@
-classdef UJackArray
+classdef UJackArray2
     
     properties (SetAccess = private)
         m   % Number of rows
@@ -9,8 +9,8 @@ classdef UJackArray
     properties (Access = private)
         
         % Basic units
-        plusArray PlusArray
-        timesArray TimesArray
+        plusArray PlusArray2
+        timesArray TimesArray2
 
         % Coordinates
         points cell
@@ -18,10 +18,10 @@ classdef UJackArray
     end
 
     methods
-        function obj = UJackArray(m, n, line, sinOrtho, sinDiag)
+        function obj = UJackArray2(m, n, line, sinOrtho, sinDiag)
             
-            obj.plusArray = PlusArray(m, n, line, sinOrtho);
-            obj.timesArray = TimesArray(m, n, line, sinDiag);
+            obj.plusArray = PlusArray2(m, n, line, sinOrtho);
+            obj.timesArray = TimesArray2(m, n, line, sinDiag);
 
             % Initialize public properties
             obj.m = m;
