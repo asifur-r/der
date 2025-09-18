@@ -41,6 +41,8 @@ classdef UJackArray2
 
         function val = CountPeaks(obj); val = obj.plusArray.CountPeaks(); end
 
+        function val = CountLines(obj); val = obj.plusArray.Base().CountLines() + 4*obj.m*obj.n; end
+
     end
 
     methods (Access = private)

@@ -75,6 +75,8 @@ classdef PlusArray2
 
         function val = CountPeaks(obj); val = obj.m * obj.n; end
 
+        function val = CountLines(obj); val = obj.baseGrid.CountLines() + 2*obj.m*obj.n; end
+            
     end
 
     methods (Access = private)

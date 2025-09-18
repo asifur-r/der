@@ -6,7 +6,7 @@ function plotRefAndDefGeom(qi, qf, r)
 
     pti = extractPoints(qi);
     ptf = extractPoints(qf);
-    markersize = 5;
+    markersize = 2;
 
     if size(pti, 1) ~= 3 % Assumes as Regular rod
         

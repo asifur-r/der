@@ -82,7 +82,12 @@ while sol.t < ana.tf
     if strcmp(ana.timeSteppingMode, 'adaptive')
     
         % Decrease dt if fails, and restore last converged state
-        if isConverged == false; sol = backup.sol; Rods = backup.Rods; ana.dt = ana.dt * 0.90; continue; end
+        if isConverged == false
+            dtNew = ana.dt * 0.90;
+
+            % Break outerwhile if dt is below minimum, otherwrise try again with smaller dt
+            if dtNew < ana.dtMin; break; else; ana.dt = dtNew; sol = backup.sol; Rods = backup.Rods; continue; end
+        end
 
         % Increase dt if converges fast
         if isConverged == true && sol.i < 10; dtNew = ana.dt * 1.10; if dtNew < ana.dtMax; ana.dt = dtNew; end; end
@@ -113,6 +118,15 @@ while sol.t < ana.tf
         % Rods(r).FI= [Rods(r).FI,Rods(r).Fi];
     end
 
+    % Energies
+    for r=1:sys.numRods
+        [es, et, eb] = allEnergies(Rods(r));
+        Rods(r).Es = [Rods(r).Es, es];
+        Rods(r).Et = [Rods(r).Et, et];
+        Rods(r).Eb = [Rods(r).Eb, eb];
+        Rods(r).E = [Rods(r).E es+et+eb];
+    end
+
     % Show live plot
     if ~isempty(visual); livePlot(Rods, sol, visual); end
 
@@ -140,6 +154,10 @@ function S = makeSolution(Rods, sys, sol)
     S.Qs = arrayfun(@(r) r.Q, Rods, 'UniformOutput', false);
     S.Us = arrayfun(@(r) r.U, Rods, 'UniformOutput', false);
     S.FIs = arrayfun(@(r) r.FI, Rods, 'UniformOutput', false);
-
+    
+    S.ESs = arrayfun(@(r) r.Es, Rods, 'UniformOutput', false);
+    S.ETs = arrayfun(@(r) r.Et, Rods, 'UniformOutput', false);
+    S.EBs = arrayfun(@(r) r.Eb, Rods, 'UniformOutput', false);
+    S.Es = arrayfun(@(r) r.E, Rods, 'UniformOutput', false);
 end
 

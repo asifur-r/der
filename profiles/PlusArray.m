@@ -76,6 +76,8 @@ classdef PlusArray
         end
 
         function val = CountPeaks(obj); val = obj.m * obj.n; end
+        
+        function val = CountLines(obj); val = obj.baseGrid.CountLines() + obj.m + obj.n; end
 
         function Plot(obj)
             % Plot the grid with node numbers and line numbers

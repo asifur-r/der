@@ -33,7 +33,7 @@ function R = InitializeRod(points, sec, mat)
     R.fextTag = sparse(R.ndof, 1);
     R.prdispTag = sparse(R.ndof, 1);
 
-    % Kinematics
+    % Kinematics: reference quntities
     [...
     R.enormbar, ...
     R.tbar,...
@@ -60,4 +60,9 @@ function R = InitializeRod(points, sec, mat)
     R.Fi = zeros(R.ndof, 1);
     R.FI = zeros(R.ndof, 1);
 
+    % Energies (would grow as column vectors as time advances)
+    R.Es = 0;
+    R.Et = 0;
+    R.Eb = 0;
+    R.E = 0;
 end

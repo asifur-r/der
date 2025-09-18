@@ -12,8 +12,8 @@ derPath = '../'; addpath(genpath(derPath))
 % RODS GENERATION
 % --------------------------------------------------
 
-%sec = Section(width, height);
-sec = Section(5, 5);
+%sec = Section(width, height, Jmod);
+sec = Section(5, 5, 1.0);
 
 %mat = Material(E, nu, rho);
 mat = Material(2.2e3, 0.38, 1.2e-4);
@@ -27,7 +27,7 @@ N = 10;
 % Generate base rods along X-axis
 points = [linspace(0, L, N)' zeros(N, 2)];
 rods(1) = InitializeRod(points, sec, mat);
-
+return
 % Optional: Check geometry by plotting
 %for r=1:length(rods); plotRefAndDefGeom(rods(r).q0, [], r); end
 

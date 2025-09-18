@@ -1,5 +1,8 @@
 function [du, dl] = newtonRaphson(Kt, R)
-    dl = 0; % Initialize displacement increment
+    % Kt is actually the jacobian J
+
+    % Explicitly set dl to zero unlike mgdm
+    dl = 0;
     
     % Direct Solve
     du = solveDirect(Kt, R);
@@ -19,18 +22,22 @@ function [du, dl] = newtonRaphson(Kt, R)
 end
 
 % Sub-function for Direct Solve
-function [du, t] = solveDirect(Kt, R)
+function du = solveDirect(Kt, R)
+
     du = Kt \ R;
+
 end
 
 % Sub-function for LU Decomposition
-function [du, t] = solveLU(Kt, R)
+function du = solveLU(Kt, R)
+
     [L, U, P] = lu(Kt);
     du = U \ (L \ (P * R));
+
 end
 
 % Sub-function for Cholesky Decomposition
-function [du, t] = solveCholesky(Kt, R)
+function du = solveCholesky(Kt, R)
 
     Rc = chol(Kt, 'lower');
     du = Rc' \ (Rc \ R);
@@ -46,7 +53,8 @@ function [du, t] = solveCholesky(Kt, R)
 end
 
 % Sub-function for RCM + LU
-function [du, t] = solveRCM(Kt, R)
+function du = solveRCM(Kt, R)
+
     p = symrcm(Kt); % Compute RCM permutation
     Ktr = Kt(p, p); % Reorder rows and columns
     Rr = R(p); % Reorder residual
@@ -57,10 +65,12 @@ function [du, t] = solveRCM(Kt, R)
     % Reverse the permutation to get original order
     du = zeros(size(R));
     du(p) = dur;
+
 end
 
 % Sub-function for AMD + LU
-function [du, t] = solveAMD(Kt, R)
+function du = solveAMD(Kt, R)
+
     p = amd(Kt);
     Kta = Kt(p, p);
     Ra = R(p);
@@ -68,4 +78,5 @@ function [du, t] = solveAMD(Kt, R)
     dua = Ua \ (La \ (Pa * Ra));
     du = zeros(size(R));
     du(p) = dua;
+
 end

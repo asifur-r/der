@@ -1,5 +1,5 @@
 classdef Record
-    % Defines record class for displacement and internal force response
+    % Defines record class for displacement, internal force and energy response
 
     properties
         folder      % Folder to save files
@@ -7,6 +7,8 @@ classdef Record
         dispdofs    % Displacement dofs
         forcefile   % Force file name
         forcedofs   % Force dofs
+        energyfile  % Energy file name
+        
     end
 
     methods
@@ -25,30 +27,37 @@ classdef Record
             % Initialize properties with default values
             obj.dispfile = [];
             obj.dispdofs = [];
+            
             obj.forcefile = [];
             obj.forcedofs = [];
 
+            obj.energyfile = [];
         end
 
         function obj = Force(obj, fileName, dofs)
-            % Set the force file and dofs.
+            % Set the force file and dofs
             obj.forcefile = validateFile(fileName, 'forcefile');
             obj.forcedofs = processDofs(dofs);
         end
 
         function obj = Displacement(obj, fileName, dofs)
-            % Set the displacement file and dofs.
+            % Set the displacement file and dofs
             obj.dispfile = validateFile(fileName, 'dispfile');
             obj.dispdofs = processDofs(dofs);
         end
 
+        function obj = Energy(obj, fileName)
+            % Set the energy file and dofs
+            obj.energyfile = validateFile(fileName, 'energyfile');
+        end
+
         function str = Path(obj, type)
             switch type
-                case 'disp';  str = fullfile(obj.folder, obj.dispfile);
-                case 'force'; str = fullfile(obj.folder, obj.forcefile);
-                otherwise; error("Path type should be 'disp' or 'force'");
+                case 'disp';   str = fullfile(obj.folder, obj.dispfile);
+                case 'force';  str = fullfile(obj.folder, obj.forcefile);
+                case 'energy'; str = fullfile(obj.folder, obj.energyfile);
+                otherwise; error("Path type should be 'disp', 'force' or 'energy'");
             end
-            
         end
 
     end
