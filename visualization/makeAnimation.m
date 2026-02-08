@@ -1,5 +1,6 @@
 function makeAnimation(S, tstepStart, tstepEnd, tstepSkip, isMovie)
     % Creates movie from solution struct S
+    % Sample call: makeAnimation(S, 1, length(S.T), 5, false)
 
     file = 'movie.mp4'; % .mp4 extension
     vid = VideoWriter(file, 'MPEG-4');

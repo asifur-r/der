@@ -35,7 +35,9 @@ function [Fed, Ked] = equalDofPenaltySPARSE(ana, sol, sys)
         m = mdofs(i);
         s = sdofs(i);
         k = kp(i);
-        f = k * (sol.u(m) - sol.u(s));
+        
+        % f = k * (sol.u(m) - sol.u(s)); % No prestress
+        f = k * (sol.u(m) - sol.u(s) + sol.q(m) - sol.q(s)); % For prestress
 
         ids = 2 * (i - 1) + (1:2);
         IF(ids) = [m; s];
@@ -56,7 +58,7 @@ function [mdofs, sdofs, kp, tsTags] = extractEqualDofParams(ana, sys)
     % Extracts equal dof parameters.
 
     % Number of equal dofs
-    eqdN = length(ana.equalDof);
+    eqdN = length(ana.equalDof.pairs);
 
     % Cell for equal dofs parameters
     mdofs  = cell(eqdN, 1);
@@ -68,7 +70,7 @@ function [mdofs, sdofs, kp, tsTags] = extractEqualDofParams(ana, sys)
     for i = 1:eqdN
 
         % Current equal dof struct
-        eqd = ana.equalDof{i};
+        eqd = ana.equalDof.pairs{i};
 
         % Master system dofs
         mdofs{i} = node2sysdof(eqd.masterRod, eqd.masterNode, eqd.dofs, sys.ndofpr);

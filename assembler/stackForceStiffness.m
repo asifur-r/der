@@ -2,7 +2,7 @@ function [Fi, Kt] = stackForceStiffness(Rods, ana, sys)
     % Returns system internal Fi and Kt just by stacking
 
     % Filter out some growing fields
-    Rods = rmfield(Rods, {'Q', 'U', 'FI'});
+    % Rods = rmfield(Rods, {'Q', 'U', 'FI'});
     
     if ana.isParallel == true
         % [fi, kt, tpar1] = parallelProcess1(Rods, sys);

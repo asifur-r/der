@@ -1,8 +1,5 @@
 classdef (Abstract) Profile
-
-    % properties (Constant)
-
-    % end
+    % Returns coordinate matrix, mat = [x y z] where x, y and z are column vectors
 
     methods (Static)
 
@@ -153,7 +150,6 @@ classdef (Abstract) Profile
             % Combine x and y into an Nx2 matrix
             mat = [x', y', z'];
         end
-
 
     end
 

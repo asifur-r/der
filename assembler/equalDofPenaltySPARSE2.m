@@ -1,10 +1,12 @@
 function [Fed, Ked] = equalDofPenaltySPARSE2(ana, sol, sys)
     % Returns the equal dof penalty force vector and sparse stiffness matrix
 
+    eqDofPairs = ana.equalDof.pairs;
+
     % Create master dofs and slave dofs list
-    mdofs = cellfun(@(c) node2sysdof(c.masterRod, c.masterNode, c.dofs, sys.ndofpr), ana.equalDof, 'UniformOutput', false);
-    sdofs = cellfun(@(c) node2sysdof(c.slaveRod, c.slaveNode, c.dofs, sys.ndofpr), ana.equalDof, 'UniformOutput', false);
-    kp    = cellfun(@(c) ones(1, length(c.dofs)) * c.penalty, ana.equalDof, 'UniformOutput', false);
+    mdofs = cellfun(@(c) node2sysdof(c.masterRod, c.masterNode, c.dofs, sys.ndofpr), eqDofPairs, 'UniformOutput', false);
+    sdofs = cellfun(@(c) node2sysdof(c.slaveRod, c.slaveNode, c.dofs, sys.ndofpr), eqDofPairs, 'UniformOutput', false);
+    kp    = cellfun(@(c) ones(1, length(c.dofs)) * c.penalty, eqDofPairs, 'UniformOutput', false);
 
     % Concatenate results into a single vector
     mdofs = [mdofs{:}];
@@ -35,7 +37,8 @@ function [Fed, Ked] = equalDofPenaltySPARSE2(ana, sol, sys)
         k = kp(i);
 
         % Compute internal force contribution
-        f = k * (sol.u(m) - sol.u(s));
+        % f = k * (sol.u(m) - sol.u(s)); % No prestress
+        f = k * (sol.u(m) - sol.u(s) + sol.q(m) - sol.q(s)); % For prestress
 
         IF{i} = [m; s];
         VF{i} = [f; -f];

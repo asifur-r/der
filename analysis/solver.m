@@ -6,8 +6,11 @@ function sol = solver(Rods)
     mdiags  = arrayfun(@(r) r.mdiag,  Rods, 'UniformOutput', false);
     % ellbars = arrayfun(@(r) r.ellbar, Rods, 'UniformOutput', false);
 
-    sol.Mdiag   = vertcat(mdiags{:});
+    sol.Mdiag  = vertcat(mdiags{:});
     % sol.Ellbar  = vertcat(ellbars{:});
+
+    qs = arrayfun(@(r) r.q, Rods, 'UniformOutput', false);
+    sol.q = vertcat(qs{:});
 
     % Time step
     sol.t = 0;
@@ -17,6 +20,8 @@ function sol = solver(Rods)
 
     % Number of system dofs
     [~, ndof] = sysDofs(Rods);
+
+    
 
     % Displacement and velocity vector
     sol.u  = zeros(ndof, 1); % at current time step
