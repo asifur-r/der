@@ -126,7 +126,7 @@ function [linkers, connection] = linkerRods(rods, linkspec)
         fprintf("\n");
         
     end
-
+    
 end
 
 function checkDuplicatePairs(pairs)

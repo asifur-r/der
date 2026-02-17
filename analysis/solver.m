@@ -21,8 +21,6 @@ function sol = solver(Rods)
     % Number of system dofs
     [~, ndof] = sysDofs(Rods);
 
-    
-
     % Displacement and velocity vector
     sol.u  = zeros(ndof, 1); % at current time step
     sol.up = zeros(ndof, 1); % at previous time step
@@ -38,6 +36,6 @@ function sol = solver(Rods)
     % Full size internal force vetor (used for liveplot/recorder)
     sol.FINT = zeros(ndof, 1);
     
-    sol.Ellbar  = zeros(ndof, 1); % at current time step
+    sol.Ellbar = zeros(ndof, 1); % at current time step
 
 end

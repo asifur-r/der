@@ -13,5 +13,6 @@ function fastPlot(S, t)
     % Plot
     plot3(Pts(:,1), Pts(:,2), Pts(:,3), 'ob')
     axis equal
+    view([0 90])
 
 end

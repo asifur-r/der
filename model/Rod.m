@@ -68,9 +68,7 @@ methods
         % Constructor - initializes Rod object
         
         % Validate inputs
-        if nargin < 3
-            error('Rod constructor requires points, section, and material objects');
-        end
+        obj.validate(points, sec, mat);
         
         % Geometry
         obj.n = size(points, 1);
@@ -136,6 +134,20 @@ methods
         obj.E = 0;
     end
     
+end
+
+methods (Static, Access = private)
+
+    function validate(points, sec, mat)
+
+        arguments
+            points  (:,3) double
+            sec     (1,1) Section
+            mat     (1,1) Material
+        end
+        
+    end
+
 end
 
 end
