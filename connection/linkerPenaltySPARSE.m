@@ -2,7 +2,7 @@ function [F, K] = linkerPenaltySPARSE(Rods, conn, sys)
     % Returns the penalty force vector and sparse stiffness matrix for linkers
 
     % Extract the state vectors from each rod and make a cell array
-    qs = arrayfun(@(r) r.q, Rods, 'UniformOutput', false);
+    qs = {Rods.q};
 
     % Number of connections
     nconn = size(conn, 1);
@@ -95,30 +95,20 @@ function [IF, VF, IK, JK, VK] = processNodePair(R, N, r, n, Rq, rq, p, ndofspr)
     kp = [pmat -pmat; -pmat pmat];
 
     % Store stiffness matrix entries
-    % ids = countK + (1:36);
     ids = 1:36;
     IK(ids) = r(:);
     JK(ids) = c(:);
     VK(ids) = kp(:);
-    % countK = countK + 36;
 
-    % % Insert penalty terms into sparse storage
-    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r1:r2, r1:r2,  pmat); % Top-left
-    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r3:r4, r3:r4,  pmat); % Bottom-right
-    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r1:r2, r3:r4, -pmat); % Top-right
-    % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, r3:r4, r1:r2, -pmat); % Bottom-left
-    
     % Compute internal forces
     RNq = Rq(node2dof(N, dofs));
     rnq = rq(node2dof(n, dofs));
     fvec = p * (RNq - rnq);
 
     % Store force vector entries
-    % ids = countF + (1:6);
     ids = 1:6;
     IF(ids) = [r1:r2, r3:r4]';
     VF(ids) = [fvec; -fvec];
-    % countF = countF + 6;
 end
 
 function [IF, VF, IK, JK, VK] = processEdgePair(R, N, r, n, Rq, rq, p, ndofspr)

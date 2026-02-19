@@ -26,7 +26,7 @@ function livePlot(Rods, sol, visual)
         % for r = 1:nrod; plotRefAndDefGeom(Rods(r).q0, Rods(r).Q(:,end), r); end 
         % for r = 1:nrod; plotRefAndDefGeom([], Rods(r).Q(:,end), r); end 
         
-        S.Qs = arrayfun(@(r) r.Q, Rods, 'UniformOutput', false);
+        S.Qs = {Rods.Q};
         
         fastPlot(S, size(S.Qs{1}, 2));
 

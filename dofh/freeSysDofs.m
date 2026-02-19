@@ -1,8 +1,5 @@
 function [vec, val] = freeSysDofs(Res, Prdisp, ana, dofs, ndofs)
     % Returns number of system dofs for multi rod and its length
-    
-    % System dofs
-    % [dofs, ndofs] = sysDofs(Rods);
 
     % For penalty approach, all dofs are free
     if strcmp(ana.constraint, 'penalty'); vec = dofs; val = ndofs; return; end

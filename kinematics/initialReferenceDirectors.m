@@ -22,7 +22,9 @@ function [a1, a2] = initialReferenceDirectors(t)
         tq = t(i, :);
         
         % Transport k-1 th a1 from k-1 tangent space to k th tangent space
-        a1(i, :) = unitVector(parallelTransport(a1p, tp, tq));
+        trans = parallelTransport(a1p, tp, tq);
+        
+        a1(i, :) = trans / vecnorm(trans); % Make unit vector
 
         % Cross to get the other director
         a2(i, :) = cross(tq, a1(i, :));

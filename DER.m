@@ -150,14 +150,14 @@ function S = makeSolution(Rods, sys, sol)
     % Prepare solution struct
     S = struct();
     S.ndofspr = sys.ndofpr;
-    S.T = sol.T;
-    S.Qs = arrayfun(@(r) r.Q, Rods, 'UniformOutput', false);
-    S.Us = arrayfun(@(r) r.U, Rods, 'UniformOutput', false);
-    S.FIs = arrayfun(@(r) r.FI, Rods, 'UniformOutput', false);
+    S.T   = sol.T;
+    S.Qs  = {Rods.Q};
+    S.Us  = {Rods.U};
+    S.FIs = {Rods.FI};
     
-    S.ESs = arrayfun(@(r) r.Es, Rods, 'UniformOutput', false);
-    S.ETs = arrayfun(@(r) r.Et, Rods, 'UniformOutput', false);
-    S.EBs = arrayfun(@(r) r.Eb, Rods, 'UniformOutput', false);
-    S.Es = arrayfun(@(r) r.E, Rods, 'UniformOutput', false);
+    S.ESs = {Rods.Es};
+    S.ETs = {Rods.Et};
+    S.EBs = {Rods.Eb};
+    S.Es  = {Rods.E};
 end
 

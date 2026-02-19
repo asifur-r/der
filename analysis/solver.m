@@ -3,13 +3,13 @@ function sol = solver(Rods)
     sol = struct();
 
     % Store the rod level vectors in their separate cell arrays
-    mdiags  = arrayfun(@(r) r.mdiag,  Rods, 'UniformOutput', false);
-    % ellbars = arrayfun(@(r) r.ellbar, Rods, 'UniformOutput', false);
+    mdiags  = {Rods.mdiag};
+    % ellbars = {Rods.ellbar};
 
     sol.Mdiag  = vertcat(mdiags{:});
     % sol.Ellbar  = vertcat(ellbars{:});
 
-    qs = arrayfun(@(r) r.q, Rods, 'UniformOutput', false);
+    qs = {Rods.q};
     sol.q = vertcat(qs{:});
 
     % Time step

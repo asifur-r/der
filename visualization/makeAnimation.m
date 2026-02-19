@@ -4,7 +4,7 @@ function makeAnimation(S, tstepStart, tstepEnd, tstepSkip, isMovie)
 
     file = 'movie.mp4'; % .mp4 extension
     vid = VideoWriter(file, 'MPEG-4');
-    vid.FrameRate = 2; % 10 frames per second
+    vid.FrameRate = 1; % 10 frames per second
 
     % Open the video file
     open(vid);

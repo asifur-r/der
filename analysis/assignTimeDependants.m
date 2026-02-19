@@ -39,9 +39,6 @@ function result = processTimeDependent(Rods, ana, t, field, fieldTag)
         % Time series values using a for loop
         for k = 1:length(tags); tvals(k) = ana.timeSeries(tags(k)).GetValue(t); end
         
-        % % Time series values using arrayfun
-        % tvals = arrayfun(@(i) ana.timeSeries(i).GetValue(t), tags)
-
         % Construct full sized zero vector
         valsFull = zeros(length(Rods(r).(field)), 1); 
 
@@ -55,26 +52,3 @@ function result = processTimeDependent(Rods, ana, t, field, fieldTag)
     % Convert cell array to concatenated array
     result = vertcat(resultCell{:});
 end
-
-
-% function [Rods, sol] = assignTimeDependants(Rods, ana, sol)
-%     % Set time dependant variables (Fext, Res, Prdisp) and returns solver object
-
-%     % Add a default constant time series of zero value beforehand
-%     timeSeries = [Series('constant', 0), ana.timeSeries];
-
-%     % Time
-%     t = sol.t;
-
-%     Number of rods
-%     nRods = length(Rods);
-    
-%     Res     = arrayfun(@(r) arrayfun(@(i, j) timeSeries(i).GetValue(t) * j, Rods(r).resTag,     Rods(r).res),    1:nRods, 'UniformOutput', false);
-%     Fext    = arrayfun(@(r) arrayfun(@(i, j) timeSeries(i).GetValue(t) * j, Rods(r).fextTag,    Rods(r).fext),   1:nRods, 'UniformOutput', false);
-%     Prdisp  = arrayfun(@(r) arrayfun(@(i, j) timeSeries(i).GetValue(t) * j, Rods(r).prdispTag,  Rods(r).prdisp), 1:nRods, 'UniformOutput', false);
-
-%     sol.Res    = vertcat(Res{:});
-%     sol.Fext   = vertcat(Fext{:});
-%     sol.Prdisp = vertcat(Prdisp{:});
-
-% end

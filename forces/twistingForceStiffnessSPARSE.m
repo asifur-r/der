@@ -39,11 +39,6 @@ function [Ft, Kt] = twistingForceStiffnessSPARSE(t, enorm, kapb, m, mbar, ellbar
         % Compute element stiffness matrix
         kt = (GJ(i) / ellbar(i)) * ((m(i) - mbar(i)) * twistHess(:, :, i) + twistGrad(i, :)' * twistGrad(i, :));
         
-        % Store stiffness matrix entries
-        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p:q, p:q, kt);
-
-        % Alternate technique without addSparseBlock
-
         % Generate row and col
         rows = p:q; cols = p:q;
 

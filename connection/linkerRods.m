@@ -9,22 +9,26 @@ function [linkers, connection] = linkerRods(rods, linkspec)
     numMainRods = length(rods);
 
     % Construct the pairs matrix
-    pairs = arrayfun(@(i) i.pair, linkspec, 'UniformOutput', false); pairs = vertcat(pairs{:});
+    pairs = {linkspec.pair}; pairs = vertcat(pairs{:});
 
     % Check for duplicate rod pairs
     checkDuplicatePairs(pairs);
+    
+    % Number of pairs
+    numPairs = size(pairs, 1);
+    hasInserted = zeros(numPairs, 1);
 
     % Linker counter
-    countLink = 1;
-
+    countLink = 0;
+    
     % Make a cell list of coordinates
-    C = arrayfun(@(r) r.points, rods, 'UniformOutput', false);
+    C = {rods.points};
 
     % Loop through pairs of rods
     for i = 1:length(linkspec)
         
         % Get rod tags
-        [rodATag, rodBTag] = deal(pairs(i, 1), pairs(i, 2)); fprintf("Rod %d and %d: Linker - ", rodATag, rodBTag);
+        [rodATag, rodBTag] = deal(pairs(i, 1), pairs(i, 2)); % fprintf("Rod %d and %d: Linker - ", rodATag, rodBTag);
 
         % Extract rod points
         [ptsA, ptsB] = deal(C{rodATag}, C{rodBTag});
@@ -77,6 +81,9 @@ function [linkers, connection] = linkerRods(rods, linkspec)
 
             if (p > 1) && (q < nptsB) % Check if (p-1)th point in A and (q+1)th point in B exist
 
+                % Update linker counter
+                countLink = countLink + 1;
+
                 % Determine linker tag
                 linkTag = numMainRods + countLink;
 
@@ -91,15 +98,17 @@ function [linkers, connection] = linkerRods(rods, linkspec)
                 points = [ptsA(p-1,:); ptsA(p,:); ptsB(q+1,:)];
 
                 % Generate the linker rod and insert into linkers matrix
-                linkers(countLink) = InitializeRod(points, linkspec(i).section, linkspec(i).material); fprintf("%d ", linkTag);
-                
-                % Update linker counter
-                countLink = countLink + 1;
+                linkers(countLink) = InitializeRod(points, linkspec(i).section, linkspec(i).material);% fprintf("%d ", linkTag);
+
+                hasInserted(i) = true;
 
             end
 
             if (q > 1) && (p < nptsA) % Check if (q-1)th point in B and (p+1)th point in A exist
                 
+                % Update linker counter
+                countLink = countLink + 1;
+
                 % Determine linker tag
                 linkTag = numMainRods + countLink;
 
@@ -114,18 +123,19 @@ function [linkers, connection] = linkerRods(rods, linkspec)
                 points = [ptsB(q-1,:); ptsB(q,:); ptsA(p+1,:)];
 
                 % Generate the linker rod and insert into linkers matrix
-                linkers(countLink) = InitializeRod(points, linkspec(i).section, linkspec(i).material); fprintf("%d ", linkTag);
+                linkers(countLink) = InitializeRod(points, linkspec(i).section, linkspec(i).material);% fprintf("%d ", linkTag);
 
-                % Update linker counter
-                countLink = countLink + 1;
-
+                hasInserted(i) = true;
             end
 
         end
 
-        fprintf("\n");
+        % fprintf("\n");
         
     end
+    
+    % Check if the specifiec linkers from pairs matrix are inserted
+    if countLink ~= numPairs; notInserted = pairs(~hasInserted, :); error('Incorrect linker pairs: \n%s', mat2str(notInserted)); end
     
 end
 

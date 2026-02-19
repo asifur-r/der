@@ -12,8 +12,8 @@ function [mat1, mat2] = bendingGradient(t, enorm, kapb, kap1, kap2, m1, m2)
         te = t(i-1, :);
         tf = t(i, :);
 
-        enorm_e = enorm(i-1);
-        enorm_f = enorm(i);
+        ene = enorm(i-1);
+        enf = enorm(i);
         
         kb = kapb(i, :);
 
@@ -28,19 +28,19 @@ function [mat1, mat2] = bendingGradient(t, enorm, kapb, kap1, kap2, m1, m2)
         
         % Some intermediate variables
         chi = 1.0 + dot(te, tf);
-        ttil = (te + tf) / chi;
-        m1til = (m1e + m1f) / chi;
-        m2til = (m2e + m2f) / chi;
+        tt = (te + tf) / chi;
+        m1t = (m1e + m1f) / chi;
+        m2t = (m2e + m2f) / chi;
 
         % Compute the unique derivatives for kappa 1
-        dk1de  =  1.0 / enorm_e * (-k1 * ttil + cross(tf, m2til));
-        dk1df  =  1.0 / enorm_f * (-k1 * ttil - cross(te, m2til));
+        dk1de  =  1.0 / ene * (-k1 * tt + cross(tf, m2t));
+        dk1df  =  1.0 / enf * (-k1 * tt - cross(te, m2t));
         dk1dte = -0.5 * dot(kb, m1e);
         dk1dtf = -0.5 * dot(kb, m1f);
 
         % Compute the unique derivatives for kappa 2
-        dk2de  =  1.0 / enorm_e * (-k2 * ttil - cross(tf, m1til));
-        dk2df  =  1.0 / enorm_f * (-k2 * ttil + cross(te, m1til));
+        dk2de  =  1.0 / ene * (-k2 * tt - cross(tf, m1t));
+        dk2df  =  1.0 / enf * (-k2 * tt + cross(te, m1t));
         dk2dte = -0.5 * dot(kb, m2e);
         dk2dtf = -0.5 * dot(kb, m2f);
 

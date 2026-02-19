@@ -44,11 +44,6 @@ function [Fb, Kb] = bendingForceStiffnessSPARSE(t, enorm, kapb, kap1, kap2, kap1
         D = (EIy(i) / ellbar(i)) * (kap2(i) - kap2bar(i)) * bendHess2(:, :, i);
         kb = A + B + C + D;
 
-        % Store stiffness matrix entries
-        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p:q, p:q, kb);
-
-        % Alternate technique without addSparseBlock
-
         % Generate row and col
         rows = p:q; cols = p:q;
 

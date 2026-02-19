@@ -34,14 +34,6 @@ function [Fs, Ks] = stretchingForceStiffnessSPARSE(t, enorm, enormbar, EA)
 
         % Compute element stiffness matrix
         ks = EA(i) * ( (1/enormbar(i) - 1/enorm(i)) * eye(3) + (t(i,:)' * t(i,:)) / enorm(i) );
-        
-        % Store stiffness matrix entries
-        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p, p,  ks);
-        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, q, q,  ks);
-        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, p, q, -ks);
-        % [IK, JK, VK, countK] = addSparseBlock(IK, JK, VK, countK, q, p, -ks);
-
-        % Alternate technique without addSparseBlock
 
         % Generate row and col
         rows = [p q]; cols = [p q];

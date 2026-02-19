@@ -2,7 +2,7 @@ function [F, K] = linkerPenaltyFULL(Rods, conn, sys)
     % Returns the penalty force vector and penalty stiffness matrix for linkers
 
     % Extract the state vectors from each rod and make a cell array
-    qs = arrayfun(@(r) r.q, Rods, 'UniformOutput', false);
+    qs = {Rods.q};
 
     % Initialize zero vectors and matrices
     F = zeros(sys.ndof, 1);

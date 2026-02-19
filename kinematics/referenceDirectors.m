@@ -20,8 +20,10 @@ function [a1, a2] = referenceDirectors(a1bar, tbar, t)
         % Reference director from reference configuration
         a1p = a1bar(i, :);
 
-        % Transport a1p from tp space (t=0) to tq space (current time)
-        a1(i, :) = unitVector(parallelTransport(a1p, tp, tq));
+        % Alternate by function call
+        trans = parallelTransport(a1p, tp, tq);
+
+        a1(i, :) = trans / vecnorm(trans); % Make unit vector
 
         % Cross to get the other director
         a2(i, :) = cross(tq, a1(i, :));

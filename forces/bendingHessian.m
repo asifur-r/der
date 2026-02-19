@@ -158,9 +158,9 @@ function mat = der2mat(dkdede, dkdedf, dkdfde, dkdfdf, dkdgedge, dkdgfdgf, dkded
 end
 
 % function mat = der2mat(dkdede, dkdedf, dkdfde, dkdfdf, dkdgedge, dkdgfdgf, dkdedge, dkdfdge, dkdedgf, dkdfdgf)
-%     This is the most basic approach where the submatrices are inserted into the zero matrix
+%     % This is the most basic approach where the submatrices are inserted into the zero matrix
 %     mat = zeros(11);
-
+ 
 %     % Edge only terms
 %     mat(1:3, 1:3)  =   dkdede;
 %     mat(1:3, 5:7)  = - dkdede + dkdedf;
@@ -190,41 +190,4 @@ end
 %     mat(8, 1:3)  = - dkdedgf';
 %     mat(8, 5:7)  =   dkdedgf' - dkdfdgf';
 %     mat(8, 9:11) =              dkdfdgf';
-% end
-
-% function mat = der2matUT(dkdede, dkdedf, dkdfde, dkdfdf, dkdgedge, dkdgfdgf, dkdedge, dkdfdge, dkdedgf, dkdfdgf)
-%     % This appraoch constructs the matrix by storing the upper triangle, then mirroing it
-
-%     mat = zeros(11);
-
-%     % Edge only terms
-%     mat(1:3, 1:3)  =   dkdede;
-%     mat(1:3, 5:7)  = - dkdede + dkdedf;
-%     mat(1:3, 9:11) =          - dkdedf;
-%     mat(5:7, 5:7)  =   dkdede - dkdedf - dkdfde + dkdfdf;
-%     mat(5:7, 9:11) =            dkdedf          - dkdfdf;
-%     mat(9:11, 9:11)=                              dkdfdf;
-    
-%     % Angle only terms
-%     mat(4, 4) = dkdgedge;
-%     mat(8, 8) = dkdgfdgf;
-    
-%     % Edge-angle coupled terms
-%     mat(1:3, 4)  = - dkdedge;
-%     mat(4, 5:7)  =   dkdedge' - dkdfdge';
-%     mat(4, 9:11) =              dkdfdge';
-    
-%     mat(1:3, 8)  = - dkdedgf;
-%     mat(5:7, 8)  =   dkdedgf  - dkdfdgf;
-%     mat(8, 9:11) =              dkdfdgf';
-
-%     % Making upper triangle by setting some lower diagonal terms to zero
-%     mat(2, 1) = 0;
-%     mat(6, 5) = 0;
-%     mat(10,9) = 0;
-%     mat(3,1:2) = 0;
-%     mat(7,5:6) = 0;
-%     mat(11,9:10) = 0;
-
-%     mat = mat + triu(mat, 1)';
 % end

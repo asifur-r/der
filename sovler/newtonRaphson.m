@@ -3,11 +3,11 @@ function [du, dl] = newtonRaphson(Kt, R)
 
     % Explicitly set dl to zero unlike mgdm
     dl = 0;
-    
-    % Direct Solve
+
+    % % Direct Solve
     du = solveDirect(Kt, R);
     
-    % AMD + LU
+    % % AMD + LU
     % du = solveAMD(Kt, R);
     
     % % LU Decomposition
