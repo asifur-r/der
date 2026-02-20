@@ -93,45 +93,20 @@ function [mdofs, sdofs, kp, tsTags] = extractEqualDofParams(ana, sys)
 end
 
 
-% function [Fed, Ked] = equalDofPenaltySPARSE(ana, sol, sys)
-%     % Returns the equal dof penalty force vector and sparse stiffness matrix
+% function [Fed, Ked] = equalDofPenaltySPARSE2(ana, sol, sys)
+%     % Cell based sparse implementation of equal dof
 
-%     % Time and time series
-%     t = sol.t;
-%     timeSeries = ana.timeSeries;
+%     eqDofPairs = ana.equalDof.pairs;
 
-%     % Number of equal dofs
-%     eqdN = length(ana.equalDof);
-
-%     % Cell containting the parameters
-%     mdofs = cell(eqdN, 1);
-%     sdofs = cell(eqdN, 1);
-%     kp = cell(eqdN, 1);
-%     tsTags = cell(eqdN, 1);
-
-%     % Extract the equal dofs
-%     for i = 1:eqdN
-%         eqd = ana.equalDof{i};
-%         mdofs{i} = node2sysdof(eqd.masterRod, eqd.masterNode, eqd.dofs, sys.ndofpr);
-%         sdofs{i} = node2sysdof(eqd.slaveRod, eqd.slaveNode, eqd.dofs, sys.ndofpr);
-%         kp{i}    = ones(1, length(eqd.dofs)) * eqd.penalty;
-%         tsTags{i}= ones(1, length(eqd.dofs)) * eqd.timeSeriesTag;
-%     end
+%     % Create master dofs and slave dofs list
+%     mdofs = cellfun(@(c) node2sysdof(c.masterRod, c.masterNode, c.dofs, sys.ndofpr), eqDofPairs, 'UniformOutput', false);
+%     sdofs = cellfun(@(c) node2sysdof(c.slaveRod, c.slaveNode, c.dofs, sys.ndofpr), eqDofPairs, 'UniformOutput', false);
+%     kp    = cellfun(@(c) ones(1, length(c.dofs)) * c.penalty, eqDofPairs, 'UniformOutput', false);
 
 %     % Concatenate results into a single vector
 %     mdofs = [mdofs{:}];
 %     sdofs = [sdofs{:}];
 %     kp    = [kp{:}];
-%     tsTags= [tsTags{:}];
-
-%     % Compute time series values
-%     tvals = zeros(1, length(tsTags));
-%     for i = 1:length(tsTags); tvals(i) = timeSeries(tsTags(i)).GetValue(t); end
-
-%     % Adjust kp
-%     kp = kp .* logical(tvals);
-    
-%     % Sparse processing
 
 %     % Number of pairs
 %     npairs = length(mdofs);
@@ -139,16 +114,14 @@ end
 %     % Ensure mdofs and sdofs are the same length
 %     assert(length(mdofs) == length(sdofs), 'Master slave dofs must have the same length.');
 
-%     % Initialize sparse matrix components
-%     sizeK = 4 * npairs; % Upper bound
-%     IK = zeros(sizeK, 1); % Row indices for stiffness
-%     JK = zeros(sizeK, 1); % Column indices for stiffness
-%     VK = zeros(sizeK, 1); % Values for stiffness
+%     % Cell-based storage for stiffness
+%     IK = cell(npairs, 1);
+%     JK = cell(npairs, 1);
+%     VK = cell(npairs, 1);
 
-%     % Initialize sparse force vector components
-%     sizeF = 2 * npairs;
-%     IF = zeros(sizeF, 1);
-%     VF = zeros(sizeF, 1);
+%     % Cell-based storage for force vector
+%     IF = cell(npairs, 1);
+%     VF = cell(npairs, 1);
 
 %     % Process each pair
 %     for i = 1:npairs
@@ -159,22 +132,28 @@ end
 %         k = kp(i);
 
 %         % Compute internal force contribution
-%         f = k * (sol.u(m) - sol.u(s));
+%         % f = k * (sol.u(m) - sol.u(s)); % No prestress
+%         f = k * (sol.u(m) - sol.u(s) + sol.q(m) - sol.q(s)); % For prestress
 
-%         % Store force vector entries
-%         ids = 2*(i-1) + (1:2);
-%         IF(ids) = [m; s];
-%         VF(ids) = [f; -f];
+%         IF{i} = [m; s];
+%         VF{i} = [f; -f];
 
-%         % Store stiffness matrix entries
-%         ids = 4*(i-1) + (1:4);
-%         IK(ids) = [m s m s]';
-%         JK(ids) = [m s s m]';
-%         VK(ids) = [k k -k -k]';
+%         IK{i} = [m s m s]';
+%         JK{i} = [m s s m]';
+%         VK{i} = [k k -k -k]';
+
 %     end
+
+%     % Flattens the cell and get the vectors
+%     IF = vertcat(IF{:});
+%     VF = vertcat(VF{:});
+
+%     IK = vertcat(IK{:});
+%     JK = vertcat(JK{:});
+%     VK = vertcat(VK{:});
 
 %     % Construct sparse matrices
 %     Ked = sparse(IK, JK, VK, sys.ndof, sys.ndof);
 %     Fed = sparse(IF, ones(size(IF)), VF, sys.ndof, 1);
-
+ 
 % end

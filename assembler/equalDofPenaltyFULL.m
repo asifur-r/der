@@ -47,4 +47,7 @@ function [Fed, Ked] = equalDofPenaltyFULL(ana, sol, sys)
 
     end
 
+    % Fed = sparse(Fed);
+    % Ked = sparse(Ked);
+
 end

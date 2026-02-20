@@ -57,4 +57,6 @@ function [Fs, Ks] = stretchingForceStiffnessFULL(t, enorm, enormbar, EA)
         
     end
 
+    Fs = sparse(Fs);
+    Ks = sparse(Ks);
 end

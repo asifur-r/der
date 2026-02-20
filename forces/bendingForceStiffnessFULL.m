@@ -42,4 +42,6 @@ function [Fb, Kb] = bendingForceStiffnessFULL(t, enorm, kapb, kap1, kap2, kap1ba
         
     end
 
+    Fb = sparse(Fb);
+    Kb = sparse(Kb);
 end

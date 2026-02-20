@@ -2,7 +2,7 @@ function [Fi, Kt] = stackForceStiffness(Rods, ana, sys)
     % Returns system internal Fi and Kt just by stacking
     
     if ana.isParallel == true
-        [fi, kt] = parallelProcess2(Rods, sys);
+        [fi, kt] = parallelProcess1(Rods, sys);
         % [fi, kt] = parallelProcess2(Rods, sys);
     else
         [fi, kt]  = serialProcess(Rods, sys);
@@ -44,7 +44,7 @@ function [fi, kt] = parallelProcess1(Rods, sys)
     % Parallel process of main rods
     parfor i = 1:numMain
         % Process rods and assign f and k
-        [f, k] = allForceStiffness(Rods(i)); fi{i} = f; kt{i} = k;
+        [fi{i}, kt{i}] = allForceStiffness(Rods(i));
     end
 
 end

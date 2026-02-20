@@ -35,4 +35,6 @@ function [Ft, Kt] = twistingForceStiffnessFULL(t, enorm, kapb, m, mbar, ellbar, 
         
     end
 
+    Kt = sparse(Kt);
+    Ft = sparse(Ft);
 end
