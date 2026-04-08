@@ -7,7 +7,7 @@ function sol = jacobianResidual(Rods, conn, ana, sys, sol)
     [Fi, Kt] = stackForceStiffness(Rods, ana, sys);
     
     % Add linker penalty force and stiffness
-    if ~isempty(conn); [Fl, Kl] = linkerPenaltySPARSE(Rods, conn, sys); Fi = Fi + Fl; Kt = Kt + Kl; end
+    if ~isempty(conn); [Fl, Kl] = linkerPenaltySPARSE3(Rods, conn, sys); Fi = Fi + Fl; Kt = Kt + Kl; end
     
     % Add equal dof penalty force and stiffness
     if ~isempty(ana.equalDof); [Feq, Keq] = equalDofPenaltySPARSE(ana, sol, sys); Fi = Fi + Feq; Kt = Kt + Keq; end

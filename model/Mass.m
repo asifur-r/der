@@ -1,4 +1,4 @@
-function rod = Mass(rod, nodesList, dofsList, valsList)
+function rod = Mass(rod, nodesList, dofsList, valsList, tagsList)
     % Takes a single rod struct and assigns lump masses to the existing mdiag vector
 
     % rod = rod struct
@@ -22,6 +22,7 @@ function rod = Mass(rod, nodesList, dofsList, valsList)
     assert(max(ids) <= n2ndof(rod.n), "Out of bound indices occured while assigning mass")
 
     % Everything good, now assign
-    rod.mdiag(ids) = valsList;
+    rod.prmdiag(ids) = valsList;
+    rod.prmdiagTag(ids) = tagsList;
     
 end

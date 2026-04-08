@@ -6,7 +6,7 @@ function sol = solver(Rods)
     mdiags  = {Rods.mdiag};
     % ellbars = {Rods.ellbar};
 
-    sol.Mdiag  = vertcat(mdiags{:});
+    sol.staticMdiag  = vertcat(mdiags{:});
     % sol.Ellbar  = vertcat(ellbars{:});
 
     qs = {Rods.q};

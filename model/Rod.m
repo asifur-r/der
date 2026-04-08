@@ -38,6 +38,10 @@ properties (Access = public)
     
     % Dynamic terms
     mdiag           % Mass diagonal matrix
+
+    % Prescribed mass
+    prmdiag
+    prmdiagTag
     
     % State variables (last iteration)
     q               % Current state vector
@@ -113,7 +117,11 @@ methods
         
         % Dynamic terms
         obj.mdiag = massDiagonal(obj.nele, obj.enormbar, sec.h, sec.w, mat.rho);
-        
+
+        % Prescribed mass
+        obj.prmdiag = sparse(obj.ndof, 1);
+        obj.prmdiagTag = sparse(obj.ndof, 1);
+
         % Holds last iteration only (column vectors)
         obj.q = obj.q0;             % State vector
         obj.u = zeros(obj.ndof, 1); % Displacement vector

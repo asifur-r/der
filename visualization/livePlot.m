@@ -29,6 +29,7 @@ function livePlot(Rods, sol, visual)
         S.Qs = {Rods.Q};
         
         fastPlot(S, size(S.Qs{1}, 2));
+        % plotStressField(S, size(S.Qs{1}, 2));
 
         if visual.triad == true; for r = 1:nrod; plotRotation(Rods(r).Q(:, end)); end; end
         if visual.nodetags == true; for r = 1:nrod; plotNodeTags(Rods(r).q0); end; end

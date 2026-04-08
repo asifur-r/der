@@ -40,12 +40,12 @@ function recordResponse(variable, rec, Rods, sol)
     if file == -1; error(['Error opening file: ', filename]); end
 
     % Recorder string
-    str = sprintf('%.3f, ', sol.t);
+    str = sprintf('%.3f ', sol.t);
 
     switch variable
         case 'energy'
         [E, Es, Et, Eb] = getEnergy(Rods);
-        str = strcat(str, sprintf('%.4f, %.4f, %.4f, %.4f', E, Es, Et, Eb) );
+        str = strcat(str, sprintf(', %.4f, %.4f, %.4f, %.4f', E, Es, Et, Eb) );
 
         % Insert new line and close
         fprintf(file, '%s\n', str); fclose(file);
@@ -76,7 +76,7 @@ function recordResponse(variable, rec, Rods, sol)
         response = full(response);
 
         % Make the string to insert
-        str = strcat(str, sprintf('%.4f', response));
+        str = strcat(str, sprintf(', %.4f', response));
 
     end
 

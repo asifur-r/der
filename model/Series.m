@@ -136,6 +136,7 @@ classdef Series
         function value = smoothReverse(obj, t)
             ta = obj.params.ta;
             tb = obj.params.tb;
+            
             if t <= ta
                 value = 1;
             elseif t >= tb
@@ -149,8 +150,9 @@ classdef Series
         function value = sinusoid(obj, t)
             ta = obj.params.ta;
             tb = obj.params.tb;
-            p = obj.params.p;
-            s = obj.params.s;
+
+            p = obj.params.p; % period
+            s = obj.params.s; % phase shift
 
             if t < ta || t > tb
                 value = 0;

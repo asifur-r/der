@@ -13,8 +13,9 @@ function [Fed, Ked] = equalDofPenaltySPARSE(ana, sol, sys)
     for i = 1:length(tsTags); tvals(i) = ana.timeSeries(tsTags(i)).GetValue(t); end
 
     % Adjust kp for current time t
-    kp = kp .* logical(tvals);
-
+    % kp = kp .* logical(tvals);
+    kp = kp .* tvals;
+    
     % Sparse processing
     
     % Number of pairs

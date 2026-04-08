@@ -27,7 +27,7 @@ while sol.t < ana.tf
 
     % Update time dependant properties
     [Rods, sol] = assignTimeDependants(Rods, ana, sol);
-
+    
     % Initialize properties
     sys = systemProperties(Rods, ana, sol, numLinkers);
 

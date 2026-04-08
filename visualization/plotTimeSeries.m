@@ -30,7 +30,8 @@ function plotTimeSeries(timeSeriesArray, tstart, tfinal, dt, tnow)
         subplot(numSeries+1, 1, count)
         y = timeSeriesArray(i).GetRangeValues(trange); % Evaluate series at each time point
         plot(trange, y, 'Color', colors(i, :), 'LineWidth', 1.5, 'DisplayName', sprintf('Series %d', i));
-        legend('show');
+        % legend('show');
+        title(sprintf('Series %d', i))
         grid on;
         count = count + 1;
     end
