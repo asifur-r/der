@@ -55,6 +55,11 @@ classdef Series
                     [obj.params.ta, obj.params.tb, obj.params.p, obj.params.s] = deal(varargin{:});
                     obj.getValFunc = @obj.sinusoid;
                 
+                case 'ramp-down'
+                    assert(numel(varargin) == 2, 'Ramp-down requires ta and tb.');
+                    [obj.params.ta, obj.params.tb] = deal(varargin{:});
+                    obj.getValFunc = @obj.rampDown;
+                    
                 otherwise
                     error('Invalid time series type.');
             end
@@ -158,6 +163,22 @@ classdef Series
                 value = 0;
             else
                 value = sin(2 * pi * (t - ta) / p + s);
+            end
+        end
+
+        function value = rampDown(obj, t)
+            ta = obj.params.ta;
+            tb = obj.params.tb;
+            
+            if t < ta
+                value = 0;
+            elseif t == ta
+                value = 1;
+            elseif t >= tb
+                value = -1;
+            else
+                % Linear interpolation between 1 and -1
+                value = 1 - 2 * (t - ta) / (tb - ta);
             end
         end
 

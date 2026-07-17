@@ -8,7 +8,7 @@ function Fpd = presDispForce(sys, sol, Kt)
 
         % Computue force vector 
         Fpd = -Kt(fr, pr) * (sol.Prdisp(pr) - sol.u(pr));
-
+        
     else % Return a zero vector
 
         % Fpd = zeros(sys.nfrdof, 1);
