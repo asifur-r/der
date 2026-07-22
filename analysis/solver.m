@@ -19,7 +19,7 @@ function sol = solver(Rods)
     sol.T = 0;
 
     % Number of system dofs
-    [~, ndof] = sysDofs(Rods);
+    ndof = sysDofs(Rods);
 
     % Displacement and velocity vector
     sol.u  = zeros(ndof, 1); % at current time step

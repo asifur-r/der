@@ -1,49 +1,48 @@
-function [du, dl] = newtonRaphson(Kt, R)
-    % Kt is actually the jacobian J
+function [du, dl] = newtonRaphson(J, R)
 
     % Explicitly set dl to zero unlike mgdm
     dl = 0;
 
     % % Direct Solve
-    du = solveDirect(Kt, R);
+    du = solveDirect(J, R);
     
     % % AMD + LU
-    % du = solveAMD(Kt, R);
+    % du = solveAMD(J, R);
     
     % % LU Decomposition
-    % du = solveLU(Kt, R);
+    % du = solveLU(J, R);
 
     % % Cholesky Decomposition
-    % du = solveCholesky(Kt, R);
+    % du = solveCholesky(J, R);
 
     % % RCM + LU
-    % du = solveRCM(Kt, R);
+    % du = solveRCM(J, R);
 
 end
 
 % Sub-function for Direct Solve
-function du = solveDirect(Kt, R)
+function du = solveDirect(J, R)
 
-    du = Kt \ R;
+    du = J \ R;
 
 end
 
 % Sub-function for LU Decomposition
-function du = solveLU(Kt, R)
+function du = solveLU(J, R)
 
-    [L, U, P] = lu(Kt);
+    [L, U, P] = lu(J);
     du = U \ (L \ (P * R));
 
 end
 
 % Sub-function for Cholesky Decomposition
-function du = solveCholesky(Kt, R)
+function du = solveCholesky(J, R)
 
-    Rc = chol(Kt, 'lower');
+    Rc = chol(J, 'lower');
     du = Rc' \ (Rc \ R);
 
-    % if issymmetric(Kt) && all(eig(Kt) > 0)
-    %     Rc = chol(Kt, 'lower');
+    % if issymmetric(J) && all(eig(J) > 0)
+    %     Rc = chol(J, 'lower');
     %     du = Rc' \ (Rc \ R);
     % else
     %     du = NaN;
@@ -53,10 +52,10 @@ function du = solveCholesky(Kt, R)
 end
 
 % Sub-function for RCM + LU
-function du = solveRCM(Kt, R)
+function du = solveRCM(J, R)
 
-    p = symrcm(Kt); % Compute RCM permutation
-    Ktr = Kt(p, p); % Reorder rows and columns
+    p = symrcm(J); % Compute RCM permutation
+    Ktr = J(p, p); % Reorder rows and columns
     Rr = R(p); % Reorder residual
 
     [L, U, P] = lu(Ktr);
@@ -69,10 +68,10 @@ function du = solveRCM(Kt, R)
 end
 
 % Sub-function for AMD + LU
-function du = solveAMD(Kt, R)
+function du = solveAMD(J, R)
 
-    p = amd(Kt);
-    Kta = Kt(p, p);
+    p = amd(J);
+    Kta = J(p, p);
     Ra = R(p);
     [La, Ua, Pa] = lu(Kta);
     dua = Ua \ (La \ (Pa * Ra));

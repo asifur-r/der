@@ -10,13 +10,7 @@ function vec = stateVector(points, gam)
     % Flatten the matrix to a vector
     vec = mat(:);
 
-    % Drop the last item
+    % Drop the last item (zero)
     vec(end) = [];
-
-    % Alternate approach
-    % Maps local n x 4 matrix to global vector (4n-1) x 1
-    %n = size(mat, 1);
-    %vec = reshape(mat', [4*n 1]);
-    %vec(end) = []; % Drop the last item
 
 end

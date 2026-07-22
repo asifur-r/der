@@ -1,5 +1,5 @@
 function [Es, Et, Eb] = allEnergies(R)
-    % Takes a rod struct R, updates kinematics and computes returns stretching, twisting and bending ebergies
+    % Takes a rod object R, updates kinematics and computes returns stretching, twisting and bending ebergies
     % Ref: Eq. 8.18
 
     % Recompute e, t

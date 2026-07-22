@@ -1,5 +1,8 @@
 ToDo:
 Make code object oriented
+Add SimulationState, Model class
+Make sol, sys to Soltion, System class
+
 Implement model check: no load/disp in constrained dofs
 
 Issues:

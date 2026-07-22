@@ -26,7 +26,7 @@ properties (Access = public)
     fextTag         % External force time series tag
     prdispTag       % Prescribed displacement time series tag
     
-    % Kinematics: reference quantities
+    % Kinematics: reference configuration
     enormbar        % Element normal vectors
     tbar            % Tangent vectors
     ellbar          % Element lengths
@@ -65,6 +65,7 @@ properties (Access = public)
     % Store input parameters for reference
     Section         % Section object
     Material        % Material object
+    
 end
 
 methods
@@ -154,6 +155,35 @@ methods (Static, Access = private)
             mat     (1,1) Material
         end
         
+    end
+
+end
+
+methods 
+
+    function obj = UpdateState(obj, u, Fi)
+
+        % Update state vec, disp, internal force
+        obj.u = u;
+        obj.q = obj.q0 + u;
+        obj.Fi = Fi;
+        
+    end
+
+    function obj = CommitStep(obj)
+
+        % Update state vec, disp, internal force
+        obj.Q(:, end + 1) = obj.q;
+        obj.U(:, end + 1) = obj.u;
+        obj.FI(:, end + 1) = obj.Fi;
+
+        % Update energies
+        [es, et, eb] = allEnergies(obj);
+        obj.Es(end + 1) = es;
+        obj.Et(end + 1) = et;
+        obj.Eb(end + 1) = eb;
+        obj.E(end + 1) = es + et + eb;
+
     end
 
 end

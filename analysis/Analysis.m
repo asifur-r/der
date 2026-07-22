@@ -20,6 +20,9 @@ classdef Analysis
         penalty     % Penalty value (only for penalty constraint)
 
         integration % 'euler' or 'newmark'
+        velocityUpdate % 'euler' or 'newmark'
+        inertialTerms %
+
         betaN       % newmark beta parameter
 
         damping     % Damping type: 'viscous'
@@ -48,6 +51,42 @@ classdef Analysis
             obj.isParallel = false;
         end
 
+        function [action, obj] = UpdateTimeStep(obj, isConverged, numIterations)
+            % Update time step based on convergence status
+            
+            % Constants
+            DT_DECREASE_FACTOR = 0.90;
+            DT_INCREASE_FACTOR = 1.10;
+            FAST_CONVERGENCE_THRESHOLD = 10;
+            
+            action = 'continue';
+            
+            switch obj.timeSteppingMode
+
+                case 'constant'
+                    if ~isConverged; action = 'terminate'; end
+                    
+                case 'adaptive'
+
+                    if ~isConverged
+                        
+                        newDt = obj.dt * DT_DECREASE_FACTOR;
+                        if newDt < obj.dtMin
+                            action = 'terminate';
+                        else
+                            obj.dt = newDt; action = 'retry';
+                        end
+
+                    elseif numIterations < FAST_CONVERGENCE_THRESHOLD
+
+                        newDt = obj.dt * DT_INCREASE_FACTOR;
+                        if newDt < obj.dtMax
+                            obj.dt = newDt;
+                        end
+                    end
+            end
+        end
+
         function obj = TimeStep(obj, mode, dt, varargin)
             % Configure time step settings
             %
@@ -68,14 +107,6 @@ classdef Analysis
                 
                 % Expecting dtMin and dtMax as extra inputs
                 assert(numel(varargin) == 2, 'For adaptive mode, dtMin and dtMax must be provided.');
-                % dtMin = varargin{1};
-                % dtMax = varargin{2};
-        
-                % assert(isscalar(dtMin) && dtMin > 0, 'dtMin must be a positive scalar.');
-                % assert(isscalar(dtMax) && dtMax > 0, 'dtMax must be a positive scalar.');
-                % assert(dtMin <= dt && dt <= dtMax, 'dt must be between dtMin and dtMax.');
-                % assert(dtMin < dtMax, 'dtMin must be less than dtMax.');
-        
                 obj.dtMin = varargin{1};
                 obj.dtMax = varargin{2};
 
@@ -96,15 +127,23 @@ classdef Analysis
         end
 
         function obj = Integration(obj, type, varargin)
-            % Set integration parameters
-            assert(strcmp(type, 'euler') || strcmp(type, 'newmark'), ...
-                "Supported integration types are: 'euler' and 'newmark'.");
+            % Set integration parameters and store function handle
 
             obj.integration = type;
 
-            if strcmp(type, 'newmark')
-                assert(nargin == 3, "Newmark integration requires a beta.");
-                obj.betaN = varargin{1};
+            switch type
+                case 'euler'
+                    obj.velocityUpdate = @velocityEuler;
+                    obj.inertialTerms = @inertialEuler;
+
+                case 'newmark'
+                    assert(nargin == 3, "Newmark integration requires a beta.");
+                    obj.betaN = varargin{1};
+                    obj.velocityUpdate = @velocityrNewmark;
+                    obj.inertialTerms = @inertialNewmark;
+
+                otherwise
+                    error('Unknown integrator type: "%s". Supported: "euler", "newmark".', type);
             end
         end
 

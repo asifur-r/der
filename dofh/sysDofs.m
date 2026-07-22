@@ -1,10 +1,7 @@
-function [vec, val] = sysDofs(Rods)
-    % Returns number of system dofs for multi rod and its length
+function val = sysDofs(Rods)
+    % Returns number of system dofs
 
     % Total dofs in the system
     val = sum(ndofsPerRod(Rods));
-
-    % Dofs id
-    vec = 1:val;
     
 end

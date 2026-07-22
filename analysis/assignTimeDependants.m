@@ -1,4 +1,4 @@
-function [Rods, sol] = assignTimeDependants(Rods, ana, sol)
+function sol = assignTimeDependants(Rods, ana, sol)
     % Set time-dependent variables (Fext, Res, Prdisp) and return solver object
 
     % Time
